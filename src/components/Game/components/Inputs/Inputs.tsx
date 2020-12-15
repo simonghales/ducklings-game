@@ -2,6 +2,7 @@ import React, {useCallback} from "react";
 import styled from "styled-components";
 import {useWindowSize} from "@react-hook/window-size";
 import {playerInputsState} from "../Player/state/inputs";
+import {playerState} from "../../../../global/state/player";
 
 const StyledContainer = styled.div`
     width: 100%;
@@ -45,7 +46,7 @@ const Inputs: React.FC = ({children}) => {
     const onStart = useCallback((event: any) => {
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, [centerX, centerY])
+        const vector = calcVector(position, [playerState.screenPosX, playerState.screenPosY])
         playerInputsState.yVel = vector[0] * -1
         playerInputsState.xVel = vector[1]
         playerInputsState.active = true
@@ -54,7 +55,7 @@ const Inputs: React.FC = ({children}) => {
     const onEnd = useCallback((event: any) => {
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, [centerX, centerY])
+        const vector = calcVector(position, [playerState.screenPosX, playerState.screenPosY])
         playerInputsState.yVel = vector[0] * -1
         playerInputsState.xVel = vector[1]
         playerInputsState.active = false
@@ -63,7 +64,7 @@ const Inputs: React.FC = ({children}) => {
     const onMove = useCallback((event: any) => {
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, [centerX, centerY])
+        const vector = calcVector(position, [playerState.screenPosX, playerState.screenPosY])
         playerInputsState.yVel = vector[0] * -1
         playerInputsState.xVel = vector[1]
     }, [centerX, centerY])

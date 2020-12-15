@@ -4,6 +4,7 @@ import {useController} from "./hooks/useController";
 import {Object3D} from "three";
 import {usePhysics} from "./hooks/usePhysics";
 import {playerGroupRef} from "../../../../global/state/refs";
+import PlayerUIHelper from "./components/PlayerUIHelper/PlayerUIHelper";
 
 const Player: React.FC = () => {
 
@@ -19,6 +20,7 @@ const Player: React.FC = () => {
     return (
         <group ref={ref}>
             <Duck/>
+            <PlayerUIHelper/>
         </group>
     );
 };
