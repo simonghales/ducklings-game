@@ -9,7 +9,7 @@ const Camera: React.FC = () => {
     useEffect(() => void setDefaultCamera(cameraRef.current), [])
 
     return (
-        <perspectiveCamera ref={cameraRef} position={[0, 0, 30]} fov={20}>
+        <perspectiveCamera ref={cameraRef} position={[0, 1, 30]} fov={20}>
             <directionalLight position={[100, 100, 100]}
                               intensity={0.4}
                               castShadow

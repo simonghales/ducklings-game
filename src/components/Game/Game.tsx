@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import GameCanvas from "./components/GameCanvas/GameCanvas";
+import Inputs from "./components/Inputs/Inputs";
 
 const StyledContainer = styled.div`
     position: absolute;
@@ -14,7 +15,9 @@ const StyledContainer = styled.div`
 const Game: React.FC = () => {
     return (
         <StyledContainer>
-            <GameCanvas/>
+            <Inputs>
+                <GameCanvas/>
+            </Inputs>
         </StyledContainer>
     );
 };
