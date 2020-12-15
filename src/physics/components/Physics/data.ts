@@ -50,7 +50,7 @@ export const applyPositionAngle = (object: Object3D | null, index: number, apply
         const start = index * 2
         const position = buffers.positions.slice(start, start + 2)
         object.position.x = position[0]
-        object.position.z = position[1]
+        object.position.y = position[1]
         if (debug) {
             // console.log('debug', debug, position)
         }

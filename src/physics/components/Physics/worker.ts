@@ -1,17 +1,17 @@
 import {WorkerMessageType} from "../../../workers/physics/types";
 import {AddBodyProps, RemoveBodyProps, SetBodyProps, UpdateBodyProps} from "../../bodies";
 import {wrap} from "comlink";
-import {AiWorkerMessageType, AiWorkerOwnerMessageType} from "../../../workers/ai/types";
-import {NetworkMessageType, sendNetworkMessage} from "../../../networking/networking";
+// import {AiWorkerMessageType, AiWorkerOwnerMessageType} from "../../../workers/ai/types";
+// import {NetworkMessageType, sendNetworkMessage} from "../../../networking/networking";
 
-export const aiWorker = new Worker('../../../workers/ai', { name: 'aiWorker', type: 'module' });
-export const aiWorkerApi = wrap<import('../../../workers/ai').AiWorker>(aiWorker);
+// export const aiWorker = new Worker('../../../workers/ai', { name: 'aiWorker', type: 'module' });
+// export const aiWorkerApi = wrap<import('../../../workers/ai').AiWorker>(aiWorker);
 export const gamePhysicsWorker = new Worker('../../../workers/physics', { name: 'gamePhysicsWorker', type: 'module' });
 
-const channel = new MessageChannel();
+// const channel = new MessageChannel();
 
-gamePhysicsWorker.postMessage({command: "connect"}, [channel.port1])
-aiWorker.postMessage({command: "connect"}, [channel.port2])
+// gamePhysicsWorker.postMessage({command: "connect"}, [channel.port1])
+// aiWorker.postMessage({command: "connect"}, [channel.port2])
 
 
 export const workerAddBody = (props: AddBodyProps) => {

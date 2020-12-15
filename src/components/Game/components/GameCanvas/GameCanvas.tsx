@@ -5,15 +5,18 @@ import Camera from "../Camera/Camera";
 import Lights from "../Lights/Lights";
 import Player from "../Player/Player";
 import Ducklings from "../Ducklings/Ducklings";
+import Physics from "../../../../physics/components/Physics/Physics";
 
 const GameCanvas: React.FC = () => {
     return (
         <Canvas shadowMap>
-            <Lights/>
-            <Camera/>
-            <Player/>
-            <Water/>
-            <Ducklings/>
+            <Physics>
+                <Lights/>
+                <Camera/>
+                <Player/>
+                <Water/>
+                <Ducklings/>
+            </Physics>
         </Canvas>
     );
 };
