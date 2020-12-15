@@ -16,6 +16,7 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
         }],
     }), {
         fwdRef: ref,
+        applyAngle: true,
     })
 
     return [api]

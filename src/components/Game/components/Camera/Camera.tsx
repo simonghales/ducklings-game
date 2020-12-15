@@ -16,7 +16,7 @@ const Camera: React.FC = () => {
 
     return (
         <group ref={groupRef}>
-            <perspectiveCamera ref={cameraRef} position={[0, 1, 30]} fov={20}>
+            <perspectiveCamera ref={cameraRef} position={[0.75, 1.75, 30]} fov={20}>
                 <directionalLight position={[100, 100, 100]}
                                   intensity={0.4}
                                   castShadow

@@ -1,6 +1,7 @@
 import { Plane } from "@react-three/drei";
 import React from "react";
 import {useTweaks} from "use-tweaks";
+import {radians} from "../../utils/angles";
 
 const Water: React.FC = () => {
 
@@ -17,9 +18,12 @@ const Water: React.FC = () => {
     // const colorString = `rgb(${Math.round(color.r)},${Math.round(color.g)},${Math.round(color.b)})`
 
     return (
-        <Plane args={[20, 20]} receiveShadow>
-            <meshPhongMaterial color={`#223f56`} />
-        </Plane>
+        <>
+            <Plane args={[20, 20]} receiveShadow>
+                <meshPhongMaterial color={`#223f56`} />
+            </Plane>
+            {/*<gridHelper args={[20, 20]} rotation={[radians(90), 0, 0]}/>*/}
+        </>
     );
 };
 

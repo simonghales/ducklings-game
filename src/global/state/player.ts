@@ -1,4 +1,4 @@
 export const playerState = {
-    screenPosX: 0,
-    screenPosY: 0,
+    screenPosX: window.innerWidth / 2,
+    screenPosY: window.innerHeight / 2,
 }
