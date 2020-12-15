@@ -40,33 +40,33 @@ const Inputs: React.FC = ({children}) => {
         height,
     ] = useWindowSize()
 
-    const center: [number, number] = [width / 2, height / 2]
+    const [centerX, centerY] = [width / 2, height / 2]
 
     const onStart = useCallback((event: any) => {
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, center)
+        const vector = calcVector(position, [centerX, centerY])
         playerInputsState.xVel = vector[0]
         playerInputsState.yVel = vector[1]
         playerInputsState.active = true
-    }, [center])
+    }, [centerX, centerY])
 
     const onEnd = useCallback((event: any) => {
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, center)
+        const vector = calcVector(position, [centerX, centerY])
         playerInputsState.xVel = vector[0]
         playerInputsState.yVel = vector[1]
         playerInputsState.active = false
-    }, [center])
+    }, [centerX, centerY])
 
     const onMove = useCallback((event: any) => {
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, center)
+        const vector = calcVector(position, [centerX, centerY])
         playerInputsState.xVel = vector[0]
         playerInputsState.yVel = vector[1]
-    }, [center])
+    }, [centerX, centerY])
 
     return (
         <StyledContainer onTouchStartCapture={onStart} onMouseDownCapture={onStart} onTouchEndCapture={onEnd} onMouseUpCapture={onEnd} onTouchMoveCapture={onMove} onMouseMoveCapture={onMove}>
