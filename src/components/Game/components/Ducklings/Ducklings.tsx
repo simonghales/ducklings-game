@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import Duckling, {getDucklingRefKey} from "./components/Duckling/Duckling";
 import {useDucklingsStore} from "../../../../global/state/ducklings";
 import {getClosestDuckRefKey, getSortedDucklings} from "./shared";
@@ -7,7 +7,23 @@ const Ducklings: React.FC = () => {
 
     const ducklings = useDucklingsStore(state => state.ducklings)
 
-    const sortedDucklings = getSortedDucklings(ducklings)
+    let sortedDucklings = getSortedDucklings(ducklings)
+
+    // const [toggle, setToggle] = useState(false)
+    //
+    // useEffect(() => {
+    //
+    //     setInterval(() => {
+    //         setToggle(state => !state)
+    //     }, 500)
+    //
+    // }, [])
+    //
+    // if (toggle) {
+    //     sortedDucklings.reverse()
+    // }
+
+    console.log('Ducklings render')
 
     return (
         <>

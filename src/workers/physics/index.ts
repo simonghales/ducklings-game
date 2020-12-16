@@ -4,7 +4,7 @@ import {WorkerMessageType, WorkerOwnerMessageType} from "./types";
 import {initPhysicsListeners, stepWorld} from "../../physics/world";
 import {syncBodies} from "./functions";
 import {addBody, removeBody, setBody, updateBody} from "../../physics/bodies";
-import {dynamicBodiesUuids, unsyncedBodies} from "../../physics/shared";
+import {dynamicBodiesUuids, setBodiesSynced, unsyncedBodies} from "../../physics/shared";
 import {maxNumberOfDynamicPhysicObjects} from "../../physics/components/Physics/data";
 
 const selfWorker = self as unknown as Worker
@@ -43,6 +43,7 @@ const step = (positions: Float32Array, angles: Float32Array) => {
 
     if (unsyncedBodies) {
         data['bodies'] = dynamicBodiesUuids
+        setBodiesSynced()
     }
 
     // const aiData: any = {

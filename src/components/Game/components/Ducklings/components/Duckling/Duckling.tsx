@@ -42,9 +42,9 @@ const Duckling: React.FC<{
     initialY
                       }) => {
 
-    const ref = useRef<Object3D>(getDefaultObject(initialX, initialY))
-    const targetRef = useRef<Object3D>(getDefaultObject(initialX, initialY))
-    const extendedTargetRef = useRef<Object3D>(getDefaultObject(initialX, initialY))
+    const ref = useRef<Object3D>(null as unknown as Object3D)
+    const targetRef = useRef<Object3D>(null as unknown as Object3D)
+    const extendedTargetRef = useRef<Object3D>(null as unknown as Object3D)
     useStoreRef(getDucklingRefKey(id), ref.current)
     useStoreRef(getDucklingTargetRefKey(id), targetRef.current)
     const [api] = usePhysics(ref)
@@ -52,13 +52,13 @@ const Duckling: React.FC<{
 
     return (
         <>
-            <group ref={ref} scale={scale} position={[initialX, initialY, 0]}>
+            <group ref={ref} scale={scale}>
                 <Duck/>
             </group>
-            <Box args={[0.15, 0.15, 0.15]} ref={targetRef}>
+            <Box args={[0.15, 0.15, 0.15]} ref={targetRef} visible={false}>
                 <meshPhongMaterial color={`red`} />
             </Box>
-            <Box args={[0.15, 0.15, 0.15]} ref={extendedTargetRef}>
+            <Box args={[0.15, 0.15, 0.15]} ref={extendedTargetRef} visible={false}>
                 <meshPhongMaterial color={`pink`} />
             </Box>
         </>

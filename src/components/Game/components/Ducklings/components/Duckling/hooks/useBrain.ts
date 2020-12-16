@@ -33,6 +33,10 @@ export const useBrain = (ducklingKey: string,
     const updateDucklingPosition = useDucklingsStore(state => state.updateDucklingPosition)
 
     const localStateRef = useRef<{
+        previousMeshX: number,
+        previousMeshY: number,
+        previousXVel: number,
+        previousYVel: number,
         previousX: number,
         previousY: number,
         previousXDir: number,
@@ -42,9 +46,15 @@ export const useBrain = (ducklingKey: string,
         requestedPosition: null | number,
         requestedPositionTimestamp: number,
         positionCooldown: number,
+        lerpedTargetX: number,
+        lerpedTargetY: number,
     }>({
         previousX: 0,
         previousY: 0,
+        previousXVel: 0,
+        previousYVel: 0,
+        previousMeshX: 0,
+        previousMeshY: 0,
         previousXDir: 0,
         previousYDir: 0,
         previousTargetX: 0,
@@ -52,6 +62,8 @@ export const useBrain = (ducklingKey: string,
         requestedPosition: null,
         requestedPositionTimestamp: 0,
         positionCooldown: 0,
+        lerpedTargetX: 0,
+        lerpedTargetY: 0,
     })
 
     const [tempTargetKey, setTempTargetKey] = useState("")
@@ -166,12 +178,10 @@ export const useBrain = (ducklingKey: string,
 
         const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
 
-        if (currentDistance < 0.5) {
+        if (currentDistance < 1) {
             console.log('close enough so im claiming it...')
             changePosition(tempPosition)
             localStateRef.current.requestedPosition = tempPosition
-        } else {
-            console.log('not close')
         }
 
     }, [tempTarget, tempPosition, changePosition, clearTempTarget])
@@ -210,6 +220,17 @@ export const useBrain = (ducklingKey: string,
             tick += 1
         }
 
+        const movedXDiff = Math.abs(ref.current.position.x - localStateRef.current.previousMeshX)
+        const movedYDiff = Math.abs(ref.current.position.y - localStateRef.current.previousMeshY)
+
+        if (movedXDiff > 3 || movedYDiff > 3) {
+            console.log('movedXDiff', movedXDiff, movedYDiff, localStateRef.current.previousXVel, localStateRef.current.previousYVel)
+        }
+
+        localStateRef.current.previousMeshX = ref.current.position.x
+        localStateRef.current.previousMeshY = ref.current.position.y
+
+
         const localState = localStateRef.current
 
         let targetX = followObject.position.x
@@ -227,6 +248,12 @@ export const useBrain = (ducklingKey: string,
 
         targetX += followXDir * offset
         targetY += followYDir * -1 * offset
+
+        // targetX = numLerp(targetX, localStateRef.current.lerpedTargetX, 55 * delta)
+        // targetY = numLerp(targetY, localStateRef.current.lerpedTargetY, 55 * delta)
+        //
+        // localStateRef.current.lerpedTargetX = targetX
+        // localStateRef.current.lerpedTargetY = targetY
 
         const extendedTargetX = targetX + (followXDir * 0.33)
         const extendedTargetY = targetY + (followYDir * -1 * 0.33)
@@ -282,10 +309,20 @@ export const useBrain = (ducklingKey: string,
             ducklingTargets[position].y = targetY
         }
 
-        const xValue = Math.floor(Math.abs(moveXDiff) * 1000) / 1000
+        let xValue = Math.floor(Math.abs(moveXDiff) * 1000) / 1000
+
+        if (xValue > 2) {
+            xValue = 2
+        }
+
         let xVel = Math.pow(xValue, 1.75)
 
-        const yValue = Math.floor(Math.abs(moveYDiff) * 1000) / 1000
+        let yValue = Math.floor(Math.abs(moveYDiff) * 1000) / 1000
+
+        if (yValue > 2) {
+            yValue = 2
+        }
+
         let yVel = Math.pow(yValue, 1.75)
 
         if (moveXDiff < 0) {
@@ -296,7 +333,10 @@ export const useBrain = (ducklingKey: string,
             yVel *= -1
         }
 
-        vector.set(xVel * 2, yVel * 2)
+        xVel = xVel * 2
+        yVel = yVel * 2
+
+        vector.set(xVel, yVel)
 
         api.applyForceToCenter(vector)
 
@@ -304,6 +344,8 @@ export const useBrain = (ducklingKey: string,
         localState.previousTargetY = targetY
         localState.previousX = followObject.position.x
         localState.previousY = followObject.position.y
+        localState.previousXVel = xVel
+        localState.previousYVel = yVel
 
         const currentDistance = calculateCheapDistance(ref.current.position.x, targetX, ref.current.position.y, targetY)
 
