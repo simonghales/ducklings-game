@@ -1,6 +1,7 @@
 export enum WorkerMessageType {
     INIT,
     STEP,
+    LOGIC_FRAME,
     ADD_BODY,
     REMOVE_BODY,
     SET_BODY,

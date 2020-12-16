@@ -9378,6 +9378,11 @@ react-merge-refs@^1.0.0, react-merge-refs@^1.1.0:
   resolved "https://registry.yarnpkg.com/react-merge-refs/-/react-merge-refs-1.1.0.tgz#73d88b892c6c68cbb7a66e0800faa374f4c38b06"
   integrity sha512-alTKsjEL0dKH/ru1Iyn7vliS2QRcBp9zZPGoWxUOvRGWPUYgjo+V01is7p04It6KhgrzhJGnIj9GgX8W4bZoCQ==
 
+react-nil@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/react-nil/-/react-nil-0.0.3.tgz#c6242460ce3dbb6d00744444911565cdba3b73b9"
+  integrity sha512-RDK8yWeWasmGFTRCqnbljvIBpWpHvH0YpGIXk65NeyOaN7SEyxsHCz3DU69G6r4L0HYLBPhMdbX5xynOvTDWuQ==
+
 react-reconciler@0.26.1:
   version "0.26.1"
   resolved "https://registry.yarnpkg.com/react-reconciler/-/react-reconciler-0.26.1.tgz#860952dd359fd870f94895c254271e3a9de3b2d6"

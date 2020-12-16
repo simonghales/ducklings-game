@@ -3,7 +3,7 @@ import {Object3D} from "three";
 import {useBody} from "../../../../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../../../../physics/bodies";
 
-export const usePhysics = (ref: MutableRefObject<Object3D>) => {
+export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
 
     const [,api] = useBody(() => ({
         type: BodyType.dynamic,
@@ -16,6 +16,7 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
             },
         }],
     }), {
+        uuid: `duckling-${id}`,
         fwdRef: ref,
         applyAngle: true,
     })

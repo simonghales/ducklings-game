@@ -1,11 +1,13 @@
 import {Object3D} from "three";
-import {MutableRefObject, useLayoutEffect, useMemo, useRef, useState} from "react";
-import {workerAddBody, workerRemoveBody, workerSetBody, workerUpdateBody} from "./worker";
+import {MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
+// import {workerAddBody, workerRemoveBody, workerSetBody, workerUpdateBody} from "./worker";
 import {AddBodyDef, BodyType, UpdateBodyData} from "../../bodies";
 import {Vec2} from "planck-js";
 import {useFrame} from "react-three-fiber";
-import {applyPositionAngle, buffers, collisionEndedEvents, collisionStartedEvents, storedPhysicsData} from "./data";
+import {applyPositionAngle, collisionEndedEvents, collisionStartedEvents, storedPhysicsData} from "./data";
 import {PhysicsCacheKeys} from "../../cache";
+import {usePhysicsProvider} from "../PhysicsProvider/context";
+import {ValidUUID} from "../../../utils/ids";
 
 export type BodyApi = {
     applyForceToCenter: (vec: Vec2) => void,
@@ -14,6 +16,82 @@ export type BodyApi = {
     setLinearVelocity: (vec: Vec2) => void,
     setAngle: (angle: number) => void,
     updateBody: (data: UpdateBodyData) => void,
+}
+
+export const useRafBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID, isDynamic: boolean, applyAngle: boolean = true) => {
+
+    const {buffers} = usePhysicsProvider()
+
+    useEffect(() => {
+
+        const onFrame = () => {
+            if (!isDynamic) {
+                return
+            }
+            if (ref.current && buffers.positions.length && buffers.angles.length) {
+                const index = storedPhysicsData.bodies[uuid]
+                applyPositionAngle(buffers, ref.current, index, applyAngle)
+            }
+            requestAnimationFrame(onFrame)
+        }
+
+        requestAnimationFrame(onFrame)
+
+    }, [])
+
+}
+
+export const useBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID, isDynamic: boolean, applyAngle: boolean = true) => {
+
+    const {buffers} = usePhysicsProvider()
+
+    const onFrame = useCallback(() => {
+        if (!isDynamic) {
+            return
+        }
+        if (ref.current && buffers.positions.length && buffers.angles.length) {
+            const index = storedPhysicsData.bodies[uuid]
+            applyPositionAngle(buffers, ref.current, index, applyAngle)
+        }
+    }, [isDynamic, ref, uuid, applyAngle])
+
+    useFrame(onFrame)
+
+}
+
+export const useBodyApi = (uuid: ValidUUID): BodyApi => {
+
+    const {
+        workerSetBody,
+        workerUpdateBody
+    } = usePhysicsProvider()
+
+    const api = useMemo<BodyApi>(() => {
+
+        return  {
+            applyForceToCenter: (vec) => {
+                workerSetBody({uuid, method: 'applyForceToCenter', methodParams: [vec, true]})
+            },
+            applyLinearImpulse: (vec, pos) => {
+                workerSetBody({uuid, method: 'applyLinearImpulse', methodParams: [vec, pos, true]})
+            },
+            setPosition: (vec) => {
+                workerSetBody({uuid, method: 'setPosition', methodParams: [vec]})
+            },
+            setLinearVelocity: (vec) => {
+                workerSetBody({uuid, method: 'setLinearVelocity', methodParams: [vec]})
+            },
+            updateBody: (data: UpdateBodyData) => {
+                workerUpdateBody({uuid, data})
+            },
+            setAngle: (angle: number) => {
+                workerSetBody({uuid, method: 'setAngle', methodParams: [angle]})
+            }
+        }
+    }, [uuid])
+
+    return api
+
 }
 
 export const useBody = (propsFn: () => AddBodyDef, {
@@ -46,7 +124,12 @@ export const useBody = (propsFn: () => AddBodyDef, {
         const props = propsFn()
         return props.type !== BodyType.static
     })
-
+    const {
+        workerAddBody,
+        workerRemoveBody,
+        workerSetBody,
+        workerUpdateBody
+    } = usePhysicsProvider()
     useLayoutEffect(() => {
 
         const props = propsFn()
@@ -80,41 +163,9 @@ export const useBody = (propsFn: () => AddBodyDef, {
 
     }, [])
 
-    useFrame(() => {
-        if (!isDynamic) {
-            return
-        }
-        if (ref.current && buffers.positions.length && buffers.angles.length) {
-            const index = storedPhysicsData.bodies[uuid]
-            applyPositionAngle(ref.current, index, applyAngle, debug)
-        }
-    })
+    useBodySync(ref, uuid, isDynamic, applyAngle)
 
-    const api = useMemo<BodyApi>(() => {
-
-        const getUUID = () => uuid
-
-        return  {
-            applyForceToCenter: (vec) => {
-                workerSetBody({uuid: getUUID(), method: 'applyForceToCenter', methodParams: [vec, true]})
-            },
-            applyLinearImpulse: (vec, pos) => {
-                workerSetBody({uuid: getUUID(), method: 'applyLinearImpulse', methodParams: [vec, pos, true]})
-            },
-            setPosition: (vec) => {
-                workerSetBody({uuid: getUUID(), method: 'setPosition', methodParams: [vec]})
-            },
-            setLinearVelocity: (vec) => {
-                workerSetBody({uuid: getUUID(), method: 'setLinearVelocity', methodParams: [vec]})
-            },
-            updateBody: (data: UpdateBodyData) => {
-                workerUpdateBody({uuid: getUUID(), data})
-            },
-            setAngle: (angle: number) => {
-                workerSetBody({uuid: getUUID(), method: 'setAngle', methodParams: [angle]})
-            }
-        }
-    }, [])
+    const api = useBodyApi(uuid)
 
     return [ref, api, uuid]
 }

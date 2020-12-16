@@ -8,6 +8,14 @@ import {wrap} from "comlink";
 // export const aiWorkerApi = wrap<import('../../../workers/ai').AiWorker>(aiWorker);
 export const gamePhysicsWorker = new Worker('../../../workers/physics', { name: 'gamePhysicsWorker', type: 'module' });
 
+const logicWorker = new Worker('../../../workers/logic', { name: 'logicWorker', type: 'module' });
+
+logicWorker.postMessage("hello world")
+
+logicWorker.onmessage = (event: MessageEvent) => {
+    console.log('logic worker message', event.data)
+}
+
 // const channel = new MessageChannel();
 
 // gamePhysicsWorker.postMessage({command: "connect"}, [channel.port1])
