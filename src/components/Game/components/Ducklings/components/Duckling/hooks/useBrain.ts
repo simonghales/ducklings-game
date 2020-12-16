@@ -1,4 +1,4 @@
-import {MutableRefObject, useEffect, useRef} from "react";
+import {MutableRefObject, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {getStoredRef} from "../../../../../../../global/state/refs";
@@ -7,7 +7,9 @@ import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../../../utils
 import {BodyApi} from "../../../../../../../physics/components/Physics/hooks";
 import {Vec2} from "planck-js";
 import {ducklingTargets} from "../../../state/targets";
+import {getClosestDuckRefKey, getSortedDucklings} from "../../../shared";
 import {useDucklingsStore} from "../../../../../../../global/state/ducklings";
+import {getDucklingTargetRefKey} from "../Duckling";
 
 let tick = 0
 
@@ -17,57 +19,197 @@ const calculateCheapDistance = (x: number, x2: number, y: number, y2: number): n
     return Math.pow(Math.abs(x - x2), 2) + Math.pow(Math.abs(y - y2), 2)
 }
 
-export const useOLDBrain = (ducklingKey: string, ref: MutableRefObject<Object3D>, followRefKey: string, api: BodyApi, targetRef: MutableRefObject<Object3D>, extendedTargetRef: MutableRefObject<Object3D>, position: number | null, debug: boolean) => {
+let odd = false
+
+export const useBrain = (ducklingKey: string,
+                         ref: MutableRefObject<Object3D>,
+                         followRefKey: string,
+                         api: BodyApi,
+                         targetRef: MutableRefObject<Object3D>,
+                         extendedTargetRef: MutableRefObject<Object3D>,
+                         position: number | null,
+                         debug: boolean,) => {
 
     const updateDucklingPosition = useDucklingsStore(state => state.updateDucklingPosition)
 
-    const localStateRef = useRef({
+    const localStateRef = useRef<{
+        previousX: number,
+        previousY: number,
+        previousXDir: number,
+        previousYDir: number,
+        previousTargetX: number,
+        previousTargetY: number,
+        requestedPosition: null | number,
+        requestedPositionTimestamp: number,
+        positionCooldown: number,
+    }>({
         previousX: 0,
         previousY: 0,
         previousXDir: 0,
         previousYDir: 0,
         previousTargetX: 0,
         previousTargetY: 0,
+        requestedPosition: null,
+        requestedPositionTimestamp: 0,
+        positionCooldown: 0,
     })
 
-    const changeDesireRef = useRef<{
-        desire: number,
-        targetPosition: number | null,
-        lockedTargetPosition: number | null,
-        lockedTargetPositionTimestamp: number,
-        lastUpdated: number,
-    }>({
-        desire: 0,
-        targetPosition: null,
-        lockedTargetPosition: null,
-        lockedTargetPositionTimestamp: 0,
-        lastUpdated: 0,
-    })
+    const [tempTargetKey, setTempTargetKey] = useState("")
+    const [tempTarget, setTempTarget] = useState<Object3D | null>(null)
+    const [tempPosition, setTempPosition] = useState<number | null>(null)
+    const [initChain, setInitChain] = useState(false)
 
     useEffect(() => {
-        console.log(`DUCK-${ducklingKey}: position: ${position}`)
-        changeDesireRef.current.lockedTargetPosition = null
+        setTimeout(() => {
+            setInitChain(true)
+        }, 50)
+    }, [])
+
+    const clearTempTarget = useCallback(() => {
+        setTempTargetKey('')
+        setTempTarget(null)
+        setTempPosition(null)
+        localStateRef.current.requestedPosition = null
+        localStateRef.current.positionCooldown = Date.now()
+    }, [])
+
+    useEffect(() => {
+        console.log('new? position', position)
+        clearTempTarget()
     }, [position])
 
-    const followRef = useRef<MutableRefObject<Object3D> | null>(getStoredRef(followRefKey))
+    const ducklingsInChain = useMemo(() => {
 
-    useEffect(() => {
-        followRef.current = getStoredRef(followRefKey)
-    }, [followRefKey])
+        let chain: {
+            ref: MutableRefObject<Object3D>,
+            refKey: string,
+            position: number,
+        }[] = []
 
-    useFrame((state, delta) => {
-        if (!followRef.current) {
-            followRef.current = getStoredRef(followRefKey)
+        if (position != null) {
+            const ducklings = useDucklingsStore.getState().ducklings
+            const sortedDucklings = getSortedDucklings(ducklings)
+            sortedDucklings.forEach((duckling, index) => {
+                if (duckling.position != null && duckling.position < position) {
+                    const ducklingRefKey = getDucklingTargetRefKey(duckling.id)
+                    const ducklingRef = getStoredRef(ducklingRefKey)
+                    if (ducklingRef) {
+                        chain.push({
+                            ref: ducklingRef,
+                            refKey: ducklingRefKey,
+                            position: duckling.position,
+                        })
+                    }
+                }
+            })
         }
-        const followObject = followRef.current?.current
-        if (!followObject) {
-            console.log('no follow object?', followRefKey)
+
+        return chain
+
+    }, [position, initChain])
+
+    const setNewTempTarget = useCallback((position: number) => {
+        console.log('setNewTempTarget', position)
+        const ducklings = useDucklingsStore.getState().ducklings
+        const sortedDucklings = getSortedDucklings(ducklings)
+        const targetRefKey = getClosestDuckRefKey(position, sortedDucklings)
+        const targetRef = getStoredRef(targetRefKey)
+        if (targetRef && targetRef.current) {
+            setTempTargetKey(targetRefKey)
+            setTempTarget(targetRef.current)
+            setTempPosition(position)
+            localStateRef.current.requestedPositionTimestamp = Date.now()
+        } else {
+            setTempTargetKey("")
+            setTempTarget(null)
+            setTempPosition(null)
+        }
+    }, [])
+
+    const changePosition = useCallback((newPosition: number) => {
+        console.log('changePosition', newPosition)
+        updateDucklingPosition(ducklingKey, newPosition)
+    }, [updateDucklingPosition, ducklingKey])
+
+
+    // useEffect(() => {
+    //
+    //     if (debug) {
+    //         setInterval(() => {
+    //             odd = !odd
+    //             changePosition(odd ? 0 : 3)
+    //         }, 5000)
+    //     }
+    //
+    // }, [debug])
+
+
+    const checkForCloseToTempTarget = useCallback(() => {
+
+        if (!tempTarget || tempPosition == null) return
+
+        if (localStateRef.current.requestedPositionTimestamp < Date.now() - 2000) {
+            console.log('time is up...')
+            clearTempTarget()
             return
         }
+
+        if (localStateRef.current.requestedPosition === tempPosition) {
+            return
+        }
+
+        const currentX = ref.current.position.x
+        const currentY = ref.current.position.y
+
+        const targetX = tempTarget.position.x
+        const targetY = tempTarget.position.y
+
+        const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
+
+        if (currentDistance < 0.5) {
+            console.log('close enough so im claiming it...')
+            changePosition(tempPosition)
+            localStateRef.current.requestedPosition = tempPosition
+        } else {
+            console.log('not close')
+        }
+
+    }, [tempTarget, tempPosition, changePosition, clearTempTarget])
+
+    const checkForCloserTarget = useCallback((currentTargetX: number, currentTargetY: number) => {
+
+        if (localStateRef.current.positionCooldown > Date.now() - 2000) {
+            return
+        }
+
+        const currentX = ref.current.position.x
+        const currentY = ref.current.position.y
+
+        const currentDistance = calculateCheapDistance(currentX, currentTargetX, currentY, currentTargetY)
+
+        if (currentDistance > 2.5) {
+            ducklingsInChain.forEach(({ref: ducklingRef, position: ducklingPosition}) => {
+                const ducklingDistance = calculateCheapDistance(currentX, ducklingRef.current.position.x, currentY, ducklingRef.current.position.y)
+                if (ducklingDistance < currentDistance) {
+                    const difference = currentDistance - ducklingDistance
+                    if (difference > 1.5) {
+                        setNewTempTarget(ducklingPosition)
+                    }
+                }
+            })
+        }
+
+
+    }, [ducklingsInChain])
+
+    const moveTowardsTarget = useCallback((followObject: Object3D, targetRefKey: string, delta: number, tempTarget: boolean = false) => {
+
         const tickDebug = tick % 20 === 0
+
         if (debug) {
             tick += 1
         }
+
         const localState = localStateRef.current
 
         let targetX = followObject.position.x
@@ -81,41 +223,10 @@ export const useOLDBrain = (ducklingKey: string, ref: MutableRefObject<Object3D>
         const followXDir = Math.sin(followAngle)
         const followYDir = Math.cos(followAngle)
 
-        const offset = followRefKey === 'player' ? 1 : 0.5
+        const offset = targetRefKey === 'player' ? 1 : 0.5
 
         targetX += followXDir * offset
         targetY += followYDir * -1 * offset
-
-        const {lockedTargetPosition, lockedTargetPositionTimestamp} = changeDesireRef.current
-
-        // if (lockedTargetPosition != null) {
-        //
-        //     const timeElapsed = Date.now() - lockedTargetPositionTimestamp
-        //
-        //     if (timeElapsed > 5000) {
-        //         if (lockedTargetPosition < 5) {
-        //             changeDesireRef.current.lockedTargetPositionTimestamp = Date.now()
-        //             changeDesireRef.current.lockedTargetPosition = 4
-        //             console.log('try a new position')
-        //         } else {
-        //             changeDesireRef.current.lockedTargetPosition = null
-        //             console.log('give up?', lockedTargetPosition)
-        //         }
-        //     }
-        //
-        //     const {x, y} = ducklingTargets[lockedTargetPosition]
-        //     targetX = x
-        //     targetY = y
-        //     const distance = calculateCheapDistance(targetX, ref.current.position.x, targetY, ref.current.position.y)
-        //     if (distance < 0.33) {
-        //         updateDucklingPosition(ducklingKey, lockedTargetPosition)
-        //         changeDesireRef.current.lockedTargetPosition = null
-        //         changeDesireRef.current.lastUpdated = Date.now()
-        //         console.log(`DUCK-${ducklingKey}: lock in target position`)
-        //     } else if (distance < 0.5) {
-        //         // console.log('semi close to new target')
-        //     }
-        // }
 
         const extendedTargetX = targetX + (followXDir * 0.33)
         const extendedTargetY = targetY + (followYDir * -1 * 0.33)
@@ -166,7 +277,7 @@ export const useOLDBrain = (ducklingKey: string, ref: MutableRefObject<Object3D>
         targetRef.current.position.x = targetX
         targetRef.current.position.y = targetY
 
-        if (position != null && changeDesireRef.current.lockedTargetPosition == null) {
+        if (position != null) {
             ducklingTargets[position].x = targetX
             ducklingTargets[position].y = targetY
         }
@@ -194,54 +305,47 @@ export const useOLDBrain = (ducklingKey: string, ref: MutableRefObject<Object3D>
         localState.previousX = followObject.position.x
         localState.previousY = followObject.position.y
 
-        // if (lockedTargetPosition == null && changeDesireRef.current.lastUpdated < Date.now() - 5000) {
-        //     const distance = Math.pow(Math.abs(moveXDiff), 2) + Math.pow(Math.abs(moveYDiff), 2)
-        //
-        //     let newCloserTarget = false
-        //
-        //     for (let i = 0; i < (position ?? 5); i++) {
-        //         if (!newCloserTarget) {
-        //             const {x,y} = ducklingTargets[i]
-        //             const otherTargetDistance = calculateCheapDistance(x, ref.current.position.x, y, ref.current.position.y)
-        //             if (otherTargetDistance < distance) {
-        //                 const difference = distance - otherTargetDistance
-        //                 if (difference > 0.1) {
-        //                     changeDesireRef.current.targetPosition = i
-        //                     console.log(`DUCK-${ducklingKey}: setting target position...`, i)
-        //                     newCloserTarget = true
-        //                 }
-        //             }
-        //         }
+        const currentDistance = calculateCheapDistance(ref.current.position.x, targetX, ref.current.position.y, targetY)
+
+        // if (debug) {
+        //     if (currentDistance > 1) {
+        //         console.log('currentDistance', currentDistance)
         //     }
-        //
-        //     let newDesire = changeDesireRef.current.desire
-        //
-        //     if (newCloserTarget) {
-        //         newDesire = newDesire + (500 * delta)
-        //         if (newDesire > 100) {
-        //             newDesire = 100
-        //         }
-        //     } else {
-        //         changeDesireRef.current.targetPosition = null
-        //         newDesire = newDesire - (500 * delta)
-        //         if (newDesire < 0) {
-        //             newDesire = 0
-        //         }
-        //     }
-        //
-        //     changeDesireRef.current.desire = newDesire
-        //
-        // }
-        //
-        // if (changeDesireRef.current.targetPosition != null && changeDesireRef.current.desire >= 100) {
-        //     console.log(`change position from ${position} to ${changeDesireRef.current.targetPosition}`)
-        //     changeDesireRef.current.lockedTargetPositionTimestamp = Date.now()
-        //     changeDesireRef.current.lockedTargetPosition = changeDesireRef.current.targetPosition
-        //     updateDucklingPosition(ducklingKey, null)
-        //     changeDesireRef.current.targetPosition = null
-        //     changeDesireRef.current.desire = 0
         // }
 
-    })
+        if (!tempTarget) {
+            checkForCloserTarget(targetX, targetY)
+        } else {
+            checkForCloseToTempTarget()
+        }
+
+    }, [checkForCloserTarget, checkForCloseToTempTarget])
+
+    const onFrame = useCallback((state: any, delta: number) => {
+
+        if (tempTarget) {
+            return moveTowardsTarget(tempTarget, tempTargetKey, delta, true)
+        }
+
+        if (!followRef.current) {
+            followRef.current = getStoredRef(followRefKey)
+        }
+        const followObject = followRef.current?.current
+        if (!followObject) {
+            console.log('no follow object?', followRefKey)
+            return
+        }
+        return moveTowardsTarget(followObject, followRefKey, delta)
+
+    }, [tempTarget, tempTargetKey, moveTowardsTarget])
+
+    const followRef = useRef<MutableRefObject<Object3D> | null>(getStoredRef(followRefKey))
+
+    useEffect(() => {
+        followRef.current = getStoredRef(followRefKey)
+        console.log('followRefKey changed', followRefKey)
+    }, [followRefKey])
+
+    useFrame(onFrame)
 
 }

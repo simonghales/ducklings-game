@@ -7,11 +7,10 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
 
     const [,api] = useBody(() => ({
         type: BodyType.dynamic,
-        linearDamping: 4,
+        linearDamping: 6,
         fixtures: [{
-            shape: BodyShape.box,
-            hx: 0.6 * 0.3,
-            hy: 1.2 * 0.3,
+            shape: BodyShape.circle,
+            radius: 0.1,
             fixtureOptions: {
                 density: 5,
             },

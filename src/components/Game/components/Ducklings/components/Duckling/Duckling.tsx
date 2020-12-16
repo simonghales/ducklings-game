@@ -2,9 +2,10 @@ import React, {useRef} from "react";
 import Duck from "../../../../../../3d/Duck/Duck";
 import {useStoreRef} from "../../../../../../global/state/refs";
 import {Object3D} from "three";
-import {useOLDBrain} from "./hooks/useBrain";
+import {useBrain} from "./hooks/useBrain";
 import {usePhysics} from "./hooks/usePhysics";
 import { Box } from "@react-three/drei";
+import TargetHelper from "../../../TargetHelper/TargetHelper";
 
 const scale: [number, number, number] = [0.3, 0.3, 0.3]
 
@@ -12,11 +13,12 @@ export const getDucklingRefKey = (id: string): string => {
     return `duckling-${id}`
 }
 
-export const getDucklingTargetRefKey = (id: string, position: number | null): string => {
-    if (position != null) {
-        return `duckling-target-position-${position}`
-    }
+export const getDucklingTargetRefKey = (id: string): string => {
     return `duckling-target-${id}`
+}
+
+export const getDucklingTargetHelperRefKey = (id: string): string => {
+    return `duckling-target-helper-${id}`
 }
 
 export const getDefaultObject = (x: number, y: number): Object3D => {
@@ -44,10 +46,9 @@ const Duckling: React.FC<{
     const targetRef = useRef<Object3D>(getDefaultObject(initialX, initialY))
     const extendedTargetRef = useRef<Object3D>(getDefaultObject(initialX, initialY))
     useStoreRef(getDucklingRefKey(id), ref.current)
-    useStoreRef(getDucklingTargetRefKey(id, position), targetRef.current)
+    useStoreRef(getDucklingTargetRefKey(id), targetRef.current)
     const [api] = usePhysics(ref)
-    useOLDBrain(id, ref, closestDuckRefKey, api, targetRef, extendedTargetRef, position, (id === 'C'))
-    // useBrain(ref, followRefKey, closestDuckRefKey, api, targetRef)
+    useBrain(id, ref, closestDuckRefKey, api, targetRef, extendedTargetRef, position, (id === 'C'))
 
     return (
         <>
