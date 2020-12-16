@@ -11,7 +11,7 @@ import {getDucklingTargetHelperRefKey} from "../Ducklings/components/Duckling/Du
 
 const Player: React.FC = () => {
 
-    const ref = useRef<Object3D>(new Object3D())
+    const ref = useRef<Object3D>(null as unknown as Object3D)
 
     useLayoutEffect(() => {
         playerGroupRef.ref = ref.current
