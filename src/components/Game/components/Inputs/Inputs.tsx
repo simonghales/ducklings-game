@@ -73,6 +73,7 @@ const Inputs: React.FC = ({children}) => {
     }, [centerX, centerY])
 
     const onMove = useCallback((event: any) => {
+        if (event.type === 'mousemove' && !playerInputsState.active) return
         const position = getClientXY(event)
         if (!position) return
         localState.referenceX = numLerp(playerState.screenPosX, localState.referenceX, 0.5)

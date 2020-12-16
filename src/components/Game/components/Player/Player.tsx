@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef} from "react";
+import React, {useLayoutEffect, useRef} from "react";
 import Duck from "../../../../3d/Duck/Duck";
 import {useController} from "./hooks/useController";
 import {Object3D} from "three";
