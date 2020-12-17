@@ -2,6 +2,7 @@ import {MutableRefObject} from "react";
 import {Object3D} from "three";
 import {useBody} from "../../../../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../../../../physics/bodies";
+import {getDucklingUuid} from "../../../../../../../shared/uuids";
 
 export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
 
@@ -16,7 +17,7 @@ export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
             },
         }],
     }), {
-        uuid: `duckling-${id}`,
+        uuid: getDucklingUuid(id),
         fwdRef: ref,
         applyAngle: true,
     })

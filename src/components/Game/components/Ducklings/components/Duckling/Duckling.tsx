@@ -48,7 +48,7 @@ const Duckling: React.FC<{
     useStoreRef(getDucklingRefKey(id), ref.current)
     useStoreRef(getDucklingTargetRefKey(id), targetRef.current)
     const [api] = usePhysics(id, ref)
-    useBrain(id, ref, closestDuckRefKey, api, targetRef, extendedTargetRef, position, (id === 'C'))
+    // useBrain(id, ref, closestDuckRefKey, api, targetRef, extendedTargetRef, position, (id === 'C'))
 
     return (
         <>

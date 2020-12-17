@@ -2,6 +2,7 @@ import {MutableRefObject} from "react";
 import {Object3D} from "three";
 import {useBody} from "../../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../../physics/bodies";
+import {getPlayerUuid} from "../../../../../shared/uuids";
 
 export const usePhysics = (ref: MutableRefObject<Object3D>) => {
 
@@ -17,6 +18,7 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
     }), {
         fwdRef: ref,
         applyAngle: true,
+        uuid: getPlayerUuid()
     })
 
     return [api]

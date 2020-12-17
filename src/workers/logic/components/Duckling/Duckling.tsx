@@ -1,17 +1,22 @@
 import * as React from "react"
 import {useEffect, useRef} from "react";
 import {Object3D} from "three";
-import {useBodyApi, useRafBodySync} from "../../../../physics/components/Physics/hooks";
-import {Vec2} from "planck-js";
+import {useBodyApi} from "../../../../physics/components/Physics/hooks";
+import {useBrain} from "./hooks/useBrain";
+import {useSyncBody} from "../LogicApp/hooks/useSyncBody";
+import {getDucklingUuid} from "../../../../shared/uuids";
+import {useStoreMesh} from "../../state/meshes";
 
 const Duckling: React.FC<{
     id: string,
 }> = ({id}) => {
 
     const ref = useRef(new Object3D())
-
-    const api = useBodyApi(`duckling-${id}`)
-    useRafBodySync(ref, `duckling-${id}`, true, true)
+    const uuid = getDucklingUuid(id)
+    const api = useBodyApi(uuid)
+    useStoreMesh(uuid, ref.current)
+    useSyncBody(uuid, ref)
+    useBrain(id, ref, api)
 
     useEffect(() => {
 

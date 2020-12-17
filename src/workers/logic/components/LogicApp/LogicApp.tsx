@@ -1,10 +1,20 @@
 import * as React from "react"
 import Ducklings from "../Ducklings/Ducklings";
 import {proxy, useProxy} from "valtio";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import PhysicsProvider, {useBuffers} from "../../../../physics/components/PhysicsProvider/PhysicsProvider";
 import {WorkerMessageType, WorkerOwnerMessageType} from "../../../physics/types";
-import {handleBeginCollision, handleEndCollision, storedPhysicsData} from "../../../../physics/components/Physics/data";
+import {
+    applyPositionAngle,
+    Buffers,
+    handleBeginCollision,
+    handleEndCollision,
+    storedPhysicsData
+} from "../../../../physics/components/Physics/data";
+import { LogicAppContext } from "./context";
+import {Object3D} from "three";
+import {ValidUUID} from "../../../../utils/ids";
+import Player from "../Player/Player";
 
 export const workerStorage: {
     worker: Worker | null,
@@ -16,6 +26,23 @@ export const logicAppState = proxy({
     workerLoaded: false,
 })
 
+type MeshSubscription = {
+    uuid: ValidUUID,
+    object: Object3D,
+    includeAngle: boolean,
+}
+
+const updateMeshes = (meshSubscriptions: Map<ValidUUID, MeshSubscription>, buffers: Buffers) => {
+
+    meshSubscriptions.forEach(({uuid, object, includeAngle}) => {
+        if (object && buffers.positions.length && buffers.angles.length) {
+            const index = storedPhysicsData.bodies[uuid]
+            applyPositionAngle(buffers, object, index, includeAngle)
+        }
+    })
+
+}
+
 const LogicApp: React.FC = () => {
 
     const buffers = useBuffers()
@@ -23,7 +50,18 @@ const LogicApp: React.FC = () => {
     const [worker, setWorker] = useState<Worker | null>(null)
     const workerLoaded = stateProxy.workerLoaded
 
+    const [meshSubscriptions] = useState(() => new Map<ValidUUID, MeshSubscription>())
 
+    const subscribeMesh = useCallback((uuid: ValidUUID, object: Object3D, includeAngle: boolean) => {
+        meshSubscriptions.set(uuid, {
+            uuid: uuid,
+            object,
+            includeAngle
+        })
+    }, [])
+    const unsubscribeMesh = useCallback((key: ValidUUID) => {
+        meshSubscriptions.delete(key)
+    }, [])
 
     useEffect(() => {
 
@@ -37,8 +75,12 @@ const LogicApp: React.FC = () => {
 
         if (!worker) return
 
+        let lastUpdate = 0
+        let lastRequest = 0
+
         const loop = () => {
             if(buffers.positions.byteLength !== 0 && buffers.angles.byteLength !== 0) {
+                lastRequest = Date.now()
                 worker.postMessage({ type: WorkerMessageType.LOGIC_FRAME, ...buffers }, [buffers.positions.buffer, buffers.angles.buffer])
             }
         }
@@ -51,7 +93,7 @@ const LogicApp: React.FC = () => {
 
             switch (type) {
                 case WorkerOwnerMessageType.FRAME:
-
+                    lastUpdate = Date.now()
                     if (event.data.bodies) {
                         storedPhysicsData.bodies = event.data.bodies.reduce(
                             (acc: { [key: string]: number }, id: string) => ({
@@ -66,7 +108,20 @@ const LogicApp: React.FC = () => {
                     const angles = event.data.angles as Float32Array
                     buffers.positions = positions
                     buffers.angles = angles
-                    requestAnimationFrame(loop);
+
+                    updateMeshes(meshSubscriptions, buffers)
+
+                    const timeSinceLastRequest = Date.now() - lastRequest
+
+                    const frameDuration = 1000 / 60
+
+                    if (timeSinceLastRequest >= frameDuration) {
+                        loop()
+                    } else {
+                        const wait = frameDuration - timeSinceLastRequest
+                        setTimeout(loop, wait)
+                    }
+
                     break
                 case WorkerOwnerMessageType.SYNC_BODIES:
                     storedPhysicsData.bodies = event.data.bodies.reduce(
@@ -94,9 +149,15 @@ const LogicApp: React.FC = () => {
     if (!worker) return null
 
     return (
-        <PhysicsProvider worker={worker} buffers={buffers}>
-            <Ducklings/>
-        </PhysicsProvider>
+        <LogicAppContext.Provider value={{
+            subscribeMesh,
+            unsubscribeMesh
+        }}>
+            <PhysicsProvider worker={worker} buffers={buffers}>
+                <Player/>
+                <Ducklings/>
+            </PhysicsProvider>
+        </LogicAppContext.Provider>
     )
 }
 

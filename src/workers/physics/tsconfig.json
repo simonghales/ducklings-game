@@ -8,7 +8,6 @@
       "esnext"
     ],
     "moduleResolution": "node",
-    "noUnusedLocals": true,
     "sourceMap": true,
     "allowJs": false,
     "baseUrl": "."
