@@ -121,24 +121,26 @@ const useMovementMethod = (ref: MutableRefObject<Object3D>, api: BodyApi, target
 
         let newAngle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
 
+        // newAngle = vectorAngle
+
         const angleDifference = getRadianAngleDifference(prevAngle, newAngle)
 
         // todo - account for delta?
-        if (Math.abs(angleDifference) > 0.1) {
-            if (angleDifference > 0) {
-                newAngle = prevAngle + 0.1
-            } else {
-                newAngle = prevAngle - 0.1
-            }
-        }
-
-        if (newAngle > PI) {
-            newAngle -= PI_TIMES_TWO
-        }
+        // if (Math.abs(angleDifference) > 0.1) {
+        //     if (angleDifference > 0) {
+        //         newAngle = prevAngle + 0.1
+        //     } else {
+        //         newAngle = prevAngle - 0.1
+        //     }
+        // }
+        //
+        // if (newAngle > PI) {
+        //     newAngle -= PI_TIMES_TWO
+        // }
 
         // console.log('angleDifference', angleDifference)
 
-        // api.setAngle(newAngle)
+        api.setAngle(newAngle)
 
         const xDir = Math.sin(vectorAngle)
         const yDir = Math.cos(vectorAngle)

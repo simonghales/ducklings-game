@@ -9,7 +9,7 @@ export const useIntervalFrame = (fn: (delta: number) => any) => {
 
         let interval = setInterval(() => {
             delta = Date.now() - previousTime
-            fn(delta)
+            fn(delta / 1000)
             previousTime = Date.now()
         }, 1000 / 60)
 
