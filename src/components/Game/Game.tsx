@@ -11,6 +11,7 @@ const StyledContainer = styled.div`
     bottom: 0;
     background-color: black;
     overflow: hidden;
+    user-select: none;
 `;
 
 const Game: React.FC = () => {
