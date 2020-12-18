@@ -1,6 +1,6 @@
 import {Object3D} from "three";
 import {ValidUUID} from "../../../utils/ids";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useLayoutEffect, useState} from "react";
 
 const storedMeshes: {
     [uuid: string]: Object3D,
@@ -20,7 +20,7 @@ export const getStoredMesh = (uuid: ValidUUID): Object3D | null => {
 
 export const useStoreMesh = (uuid: ValidUUID, object: Object3D) => {
 
-    useEffect(() => {
+    useLayoutEffect(() => {
 
         addStoredMesh(uuid, object)
 

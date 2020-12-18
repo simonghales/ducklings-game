@@ -1,16 +1,15 @@
 import * as React from "react"
-import {useProxy} from "valtio";
-import {ducklingsState} from "../../state/ducklings";
+import {useDucklings} from "../../state/ducklings";
 import Duckling from "../Duckling/Duckling";
 
 const Ducklings: React.FC = () => {
 
-    const ducklingsProxy = useProxy(ducklingsState)
+    const ducklings = useDucklings()
 
     return (
         <>
             {
-                Object.values(ducklingsProxy).map(({id}) => (
+                ducklings.map(({id}) => (
                     <Duckling id={id} key={id}/>
                 ))
             }

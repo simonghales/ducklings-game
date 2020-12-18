@@ -1,8 +1,7 @@
-import {DucklingState, getDucklingState} from "../../../state/ducklings";
-import {useProxy} from "valtio";
+import {DucklingState, useDucklingState} from "../../../state/ducklings";
 
 export const useDuckling = (id: string): DucklingState => {
 
-    return useProxy(getDucklingState(id))
+    return useDucklingState(id)
 
 }

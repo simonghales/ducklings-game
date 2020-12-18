@@ -1,24 +1,207 @@
 import {BodyApi} from "../../../../../physics/components/Physics/hooks";
-import {MutableRefObject, useCallback, useMemo, useRef} from "react";
-import {useDuckling} from "./useDuckling";
+import {MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {useIntervalFrame} from "../../../../../shared/hooks/frame";
 import {Object3D} from "three";
 import {getStoredMesh, useTargetObject} from "../../../state/meshes";
 import {ValidUUID} from "../../../../../utils/ids";
-import {getSortedDucklings} from "../../../state/ducklings";
+import {
+    getSortedDucklings,
+    updateDucklingsOrder,
+    useSortedDucklings
+} from "../../../state/ducklings";
 import {getDucklingUuid, getPlayerUuid} from "../../../../../shared/uuids";
 import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../utils/numbers";
 import {getRadianAngleDifference, radians} from "../../../../../utils/angles";
-import {ducklingTargets} from "../../../../../components/Game/components/Ducklings/state/targets";
 import {Vec2} from "planck-js";
+import {useDuckling} from "./useDuckling";
+import {useDucklingId} from "../context";
+import {useMounted} from "../../../../../shared/hooks/mounted";
+import {proxy} from "valtio";
 
 const vector = Vec2(0, 0)
 
+const calculateCheapDistance = (x: number, x2: number, y: number, y2: number): number => {
+    return Math.pow(Math.abs(x - x2), 2) + Math.pow(Math.abs(y - y2), 2)
+}
+
+type TempTarget = {
+    id: string,
+    order: number,
+    object: Object3D
+}
+
+type UpdateFn = (update: TempTarget | null) => void
+
+const useTempTargetObject = (order: number): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
+
+    const [targetCooldown, setTargetCooldown] = useState('')
+    const [tempTarget, setTempTargetObject] = useState<TempTarget | null>(null)
+
+    const setTempTarget = useCallback((update: TempTarget | null) => {
+        setTempTargetObject(update)
+    }, [setTempTargetObject])
+
+    const tempTargetId = tempTarget ? tempTarget.id : ''
+
+    const isValidTarget = useCallback((id: string) => {
+        return id !== targetCooldown
+    }, [targetCooldown])
+
+    const ducklingId = useDucklingId()
+
+    useEffect(() => {
+
+        if (tempTargetId) {
+
+            const timeout = setTimeout(() => {
+                setTempTargetObject(null)
+                setTargetCooldown(tempTargetId)
+            }, 2000)
+
+            return () => {
+                clearTimeout(timeout)
+            }
+
+        }
+
+    }, [tempTargetId, setTempTargetObject])
+
+    useEffect(() => {
+        setTempTargetObject(null)
+    }, [order])
+
+    useEffect(() => {
+
+        if (targetCooldown) {
+
+            const timeout = setTimeout(() => {
+                setTargetCooldown('')
+            }, 1000)
+
+            return () => {
+                clearTimeout(timeout)
+            }
+
+        }
+
+    }, [targetCooldown, setTargetCooldown])
+
+    return [tempTarget, setTempTarget, isValidTarget]
+}
+
+const useCheckForReachedTarget = (setTempTarget: UpdateFn) => {
+
+    const id = useDucklingId()
+    const {order} = useDuckling(id)
+
+    const [claimedPosition, setClaimedPosition] = useState<number | null>(null)
+
+    const checkForReachedTarget = useCallback((object: Object3D, target: Object3D, position: number) => {
+
+        if (claimedPosition != null) return
+
+        const currentX = object.position.x
+        const currentY = object.position.y
+
+        const targetX = target.position.x
+        const targetY = target.position.y
+
+        const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
+
+        if (currentDistance < 2) {
+            setClaimedPosition(position)
+        }
+
+    }, [claimedPosition, setTempTarget])
+
+    useEffect(() => {
+
+        if (claimedPosition != null) {
+            updateDucklingsOrder(id, claimedPosition)
+        }
+
+    }, [claimedPosition, id])
+
+    useEffect(() => {
+
+        setClaimedPosition(null)
+
+    }, [order])
+
+    return checkForReachedTarget
+
+}
+
+
+const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: string) => boolean) => {
+
+    const mounted = useMounted()
+    const id = useDucklingId()
+    const {order} = useDuckling(id)
+
+    const ducklingsInChain = useMemo(() => {
+
+        let chain: {
+            id: string,
+            object: Object3D,
+            order: number,
+        }[] = []
+
+        if (order != null) {
+            const sortedDucklings = getSortedDucklings()
+            sortedDucklings.forEach((duckling) => {
+                if (duckling.order != null && duckling.order < order && isValidTarget(duckling.id)) {
+                    const ducklingObject = getStoredMesh(getDucklingUuid(duckling.id))
+                    if (ducklingObject) {
+                        chain.push({
+                            id: duckling.id,
+                            object: ducklingObject,
+                            order: duckling.order,
+                        })
+                    }
+                }
+            })
+        }
+
+        return chain
+
+    }, [mounted, order, id])
+
+    const checkForCloserTarget = useCallback((object: Object3D, currentTargetX: number, currentTargetY: number) => {
+
+        const currentX = object.position.x
+        const currentY = object.position.y
+
+        const currentDistance = calculateCheapDistance(currentX, currentTargetX, currentY, currentTargetY)
+
+        if (currentDistance > 2.5) {
+            ducklingsInChain.forEach(({id, object: ducklingObject, order: ducklingPosition}) => {
+                const ducklingDistance = calculateCheapDistance(currentX, ducklingObject.position.x, currentY, ducklingObject.position.y)
+                if (ducklingDistance < currentDistance) {
+                    const difference = currentDistance - ducklingDistance
+                    if (difference > 1.5) {
+                        setTempTarget({
+                            id,
+                            order: ducklingPosition,
+                            object: ducklingObject,
+                        })
+                        return
+                    }
+                }
+            })
+        }
+
+    }, [ducklingsInChain, setTempTarget])
+
+    return checkForCloserTarget
+
+}
+
 const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
 
-    const targetUuid = useMemo<ValidUUID | null>(() => {
+    const sortedDucklings = useSortedDucklings()
 
-        const sortedDucklings = getSortedDucklings()
+    const targetUuid = useMemo<ValidUUID | null>(() => {
 
         const ducklingIndex = sortedDucklings.findIndex((duckling) => duckling.id === id)
 
@@ -28,15 +211,24 @@ const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
 
         const previousDuckling = sortedDucklings[ducklingIndex - 1]
 
-        return getDucklingUuid(previousDuckling.id)
+        const uuid = getDucklingUuid(previousDuckling.id)
 
-        return null
-    }, [id, order])
+        console.log(`duckling ${id} targetUuid`, uuid)
+
+        return uuid
+
+    }, [id, order, sortedDucklings])
 
     return targetUuid
 }
 
-const useMovementMethod = (ref: MutableRefObject<Object3D>, api: BodyApi, targetUuid: ValidUUID | null) => {
+const useMovementMethod = (
+    ref: MutableRefObject<Object3D>,
+    api: BodyApi, targetUuid: ValidUUID | null,
+    setTempTarget: UpdateFn,
+    isValidTarget: (id: string) => boolean,
+    tempTarget: TempTarget | null,
+) => {
 
     const localStateRef = useRef<{
         previousMeshX: number,
@@ -72,11 +264,14 @@ const useMovementMethod = (ref: MutableRefObject<Object3D>, api: BodyApi, target
         lerpedTargetY: 0,
     })
 
+    const checkForCloserTarget = useCheckForCloserTarget(setTempTarget, isValidTarget)
+    const checkForReachedTarget = useCheckForReachedTarget(setTempTarget)
+
     const offset = useMemo(() => {
         return targetUuid === getPlayerUuid() ? 1 : 0.5
     }, [targetUuid])
 
-    return useCallback((delta: number, targetObject: Object3D) => {
+    return useCallback((delta: number, targetObject: Object3D, isTempTarget: boolean = false) => {
 
         const movedXDiff = Math.abs(ref.current.position.x - localStateRef.current.previousMeshX)
         const movedYDiff = Math.abs(ref.current.position.y - localStateRef.current.previousMeshY)
@@ -192,7 +387,13 @@ const useMovementMethod = (ref: MutableRefObject<Object3D>, api: BodyApi, target
         localState.previousXVel = xVel
         localState.previousYVel = yVel
 
-    }, [ref, api, offset])
+        if (isTempTarget && tempTarget) {
+            checkForReachedTarget(ref.current, targetObject, tempTarget.order)
+        } else {
+            checkForCloserTarget(ref.current, targetX, targetY)
+        }
+
+    }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget])
 }
 
 export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyApi) => {
@@ -201,10 +402,14 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
 
     const targetUuid = useDucklingTargetUuid(id, order)
     const [targetObject, refetchTargetObject] = useTargetObject(targetUuid)
-
-    const movementMethod = useMovementMethod(ref, api, targetUuid)
+    const [tempTarget, setTempTarget, isValidTarget] = useTempTargetObject(order)
+    const movementMethod = useMovementMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget)
 
     const onFrame = useCallback((delta: number) => {
+
+        if (tempTarget) {
+            return movementMethod(delta, tempTarget.object, true)
+        }
 
         if (!targetObject) {
             if (targetUuid != null) {
@@ -215,7 +420,7 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
 
         movementMethod(delta, targetObject)
 
-    }, [targetUuid, targetObject, refetchTargetObject])
+    }, [targetUuid, targetObject, refetchTargetObject, tempTarget])
 
     useIntervalFrame(onFrame)
 

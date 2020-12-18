@@ -88,7 +88,7 @@
     "zustand": "^3.2.0"
   },
   "scripts": {
-    "start": "FAST_REFRESH=false node scripts/start.js",
+    "start": "node scripts/start.js",
     "build": "CI='' GENERATE_SOURCEMAP=false node scripts/build.js && cp _redirects build",
     "test": "node scripts/test.js"
   },

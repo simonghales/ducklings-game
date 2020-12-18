@@ -6,6 +6,7 @@ import {useBrain} from "./hooks/useBrain";
 import {useSyncBody} from "../LogicApp/hooks/useSyncBody";
 import {getDucklingUuid} from "../../../../shared/uuids";
 import {useStoreMesh} from "../../state/meshes";
+import { DucklingContext } from "./context";
 
 const Duckling: React.FC<{
     id: string,
@@ -30,4 +31,17 @@ const Duckling: React.FC<{
     return null
 }
 
-export default Duckling
+const DucklingWrapper: React.FC<{
+    id: string,
+}> = ({id}) => {
+    return (
+        <DucklingContext.Provider value={{
+            id,
+        }}>
+            <Duckling id={id}/>
+        </DucklingContext.Provider>
+    )
+}
+
+
+export default DucklingWrapper
