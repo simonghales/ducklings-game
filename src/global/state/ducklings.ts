@@ -74,6 +74,7 @@ type DucklingsStore = {
 export const useDucklingsStore = create<DucklingsStore>(set => ({
     ducklings: ducks,
     updateDucklingPosition: (ducklingKey, newPosition) => {
+        console.log('updateDucklingPosition', ducklingKey, newPosition)
         return set(state => {
             const ducklings = state.ducklings
             const orderedDucklings = Object.values(ducklings).sort((ducklingA, ducklingB) => {

@@ -18,13 +18,13 @@ export type BodyApi = {
     updateBody: (data: UpdateBodyData) => void,
 }
 
-export const useRafBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID, isDynamic: boolean, applyAngle: boolean = true) => {
+export const useIntervalBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID, isDynamic: boolean, applyAngle: boolean = true) => {
 
     const {buffers} = usePhysicsProvider()
 
     useEffect(() => {
 
-        const onFrame = () => {
+        let interval = setInterval(() => {
             if (!isDynamic) {
                 return
             }
@@ -32,10 +32,11 @@ export const useRafBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID,
                 const index = storedPhysicsData.bodies[uuid]
                 applyPositionAngle(buffers, ref.current, index, applyAngle)
             }
-            requestAnimationFrame(onFrame)
-        }
+        }, 1000 / 60)
 
-        requestAnimationFrame(onFrame)
+        return () => {
+            clearInterval(interval)
+        }
 
     }, [])
 

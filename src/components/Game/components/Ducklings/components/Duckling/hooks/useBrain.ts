@@ -2,7 +2,7 @@ import {MutableRefObject, useCallback, useEffect, useMemo, useRef, useState} fro
 import {Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {getStoredRef} from "../../../../../../../global/state/refs";
-import {radians} from "../../../../../../../utils/angles";
+import {getRadianAngleDifference, radians} from "../../../../../../../utils/angles";
 import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../../../utils/numbers";
 import {BodyApi} from "../../../../../../../physics/components/Physics/hooks";
 import {Vec2} from "planck-js";
@@ -178,7 +178,7 @@ export const useBrain = (ducklingKey: string,
 
         const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
 
-        if (currentDistance < 1) {
+        if (currentDistance < 2) {
             console.log('close enough so im claiming it...')
             changePosition(tempPosition)
             localStateRef.current.requestedPosition = tempPosition
@@ -282,7 +282,13 @@ export const useBrain = (ducklingKey: string,
             prevAngle -= PI_TIMES_TWO
         }
 
-        api.setAngle(lerpRadians(vectorAngle, prevAngle, 50 * delta))
+        let newAngle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
+
+        const angleDifference = getRadianAngleDifference(prevAngle, newAngle)
+
+        console.log('angleDifference', angleDifference)
+
+        api.setAngle(newAngle)
 
         const xDir = Math.sin(vectorAngle)
         const yDir = Math.cos(vectorAngle)

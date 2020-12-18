@@ -1,17 +1,23 @@
 import * as React from "react"
 import {useEffect, useRef} from "react";
 import {Object3D} from "three";
-import {useBodyApi, useRafBodySync} from "../../../../physics/components/Physics/hooks";
-import {Vec2} from "planck-js";
+import {useBodyApi} from "../../../../physics/components/Physics/hooks";
+import {useBrain} from "./hooks/useBrain";
+import {useSyncBody} from "../LogicApp/hooks/useSyncBody";
+import {getDucklingUuid} from "../../../../shared/uuids";
+import {useStoreMesh} from "../../state/meshes";
+import { DucklingContext } from "./context";
 
 const Duckling: React.FC<{
     id: string,
 }> = ({id}) => {
 
     const ref = useRef(new Object3D())
-
-    const api = useBodyApi(`duckling-${id}`)
-    useRafBodySync(ref, `duckling-${id}`, true, true)
+    const uuid = getDucklingUuid(id)
+    const api = useBodyApi(uuid)
+    useStoreMesh(uuid, ref.current)
+    useSyncBody(uuid, ref)
+    useBrain(id, ref, api)
 
     useEffect(() => {
 
@@ -25,4 +31,17 @@ const Duckling: React.FC<{
     return null
 }
 
-export default Duckling
+const DucklingWrapper: React.FC<{
+    id: string,
+}> = ({id}) => {
+    return (
+        <DucklingContext.Provider value={{
+            id,
+        }}>
+            <Duckling id={id}/>
+        </DucklingContext.Provider>
+    )
+}
+
+
+export default DucklingWrapper
