@@ -30,7 +30,7 @@ export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => 
 
         const diffCapped = diff > 50 ? 50 : diff
 
-        const speedLimit = Math.abs(diffCapped - 50) / 50
+        const speedLimit = (Math.abs(diffCapped - 50) / 50) * 80 * delta
 
         let prevAngle = ref.current.rotation.z // convert to low equivalent angle
         if (prevAngle > PI) {

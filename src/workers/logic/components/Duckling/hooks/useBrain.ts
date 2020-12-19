@@ -269,7 +269,7 @@ const useMovementMethod = (
     const checkForReachedTarget = useCheckForReachedTarget(setTempTarget)
 
     const offset = useMemo(() => {
-        return targetUuid === getPlayerUuid() ? 1 : 0.5
+        return targetUuid === getPlayerUuid() ? 1 : 0.45
     }, [targetUuid])
 
     return useCallback((delta: number, targetObject: Object3D, isTempTarget: boolean = false) => {
@@ -376,6 +376,11 @@ const useMovementMethod = (
 
         xVel = xVel * 2
         yVel = yVel * 2
+
+        xVel = xVel * 35 * delta
+        yVel = yVel * 35 * delta
+
+        // todo - implement maximum
 
         vector.set(xVel, yVel)
 

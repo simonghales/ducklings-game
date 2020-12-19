@@ -14,7 +14,7 @@ export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
             shape: BodyShape.circle,
             radius: 0.1,
             fixtureOptions: {
-                density: 5,
+                density: 2,
                 userData: {
                     fixtureType: FixtureType.DUCKLING,
                     ducklingId: id,
