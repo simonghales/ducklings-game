@@ -174,17 +174,20 @@ const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: st
 
         const currentDistance = calculateCheapDistance(currentX, currentTargetX, currentY, currentTargetY)
 
+        let matched = false
+
         if (currentDistance > 2.5) {
-            ducklingsInChain.forEach(({id, object: ducklingObject, order: ducklingPosition}) => {
+            ducklingsInChain.forEach(({id: ducklingId, object: ducklingObject, order: ducklingPosition}) => {
                 const ducklingDistance = calculateCheapDistance(currentX, ducklingObject.position.x, currentY, ducklingObject.position.y)
                 if (ducklingDistance < currentDistance) {
                     const difference = currentDistance - ducklingDistance
                     if (difference > 1.5) {
                         setTempTarget({
-                            id,
+                            id: ducklingId,
                             order: ducklingPosition,
                             object: ducklingObject,
                         })
+                        matched = true
                         return
                     }
                 }

@@ -5,6 +5,8 @@ import {Object3D} from "three";
 import {usePhysics} from "./hooks/usePhysics";
 import {playerGroupRef, useStoreRef} from "../../../../global/state/refs";
 import PlayerUIHelper from "./components/PlayerUIHelper/PlayerUIHelper";
+import Debugging from "./components/Debugging/Debugging";
+import {useCollisionsHandling} from "./hooks/useCollisionsHandling";
 
 const Player: React.FC = () => {
 
@@ -14,15 +16,16 @@ const Player: React.FC = () => {
         playerGroupRef.ref = ref.current
     }, [])
 
+    useCollisionsHandling()
     const [api] = usePhysics(ref)
 
     useStoreRef("player", ref.current)
-
     useController(ref, api)
 
     return (
         <group ref={ref}>
             <Duck/>
+            <Debugging/>
             <PlayerUIHelper/>
         </group>
     );

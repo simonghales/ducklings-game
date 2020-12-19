@@ -10,6 +10,8 @@ import {useMessages} from "./hooks/useMessages";
 import { DucklingContext } from "./context";
 import {generateDucklingState} from "./state";
 import Quack from "./components/Quack/Quack";
+import {useStoreMesh} from "../../../../../../workers/logic/state/meshes";
+import {getDucklingUuid} from "../../../../../../shared/uuids";
 
 const scale: [number, number, number] = [0.3, 0.3, 0.3]
 
@@ -31,16 +33,10 @@ type DucklingProps = {
 
 const Duckling: React.FC<DucklingProps> = ({
     id,
-    position,
-    closestDuckRefKey,
-    initialX,
-    initialY
                       }) => {
 
     const ref = useRef<Object3D>(null as unknown as Object3D)
-    const targetRef = useRef<Object3D>(null as unknown as Object3D)
-    useStoreRef(getDucklingRefKey(id), ref.current)
-    useStoreRef(getDucklingTargetRefKey(id), targetRef.current)
+    useStoreMesh(getDucklingUuid(id), ref.current)
     usePhysics(id, ref)
     useMessages(id)
 

@@ -7,6 +7,7 @@ import Player from "../Player/Player";
 import Ducklings from "../Ducklings/Ducklings";
 import Physics from "../../../../physics/components/Physics/Physics";
 import Messages from "../../../Messages/Messages";
+import DuckWeed from "../DuckWeed/DuckWeed";
 
 const GameCanvas: React.FC = () => {
     return (
@@ -18,6 +19,7 @@ const GameCanvas: React.FC = () => {
                     <Player/>
                     {/*<FollowTargets/>*/}
                     <Water/>
+                    <DuckWeed/>
                     <Ducklings/>
                 </Physics>
             </Messages>

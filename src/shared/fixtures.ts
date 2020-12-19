@@ -10,3 +10,7 @@ export type FixtureUserData = {
     fixtureType?: FixtureType,
     [key: string]: any,
 }
+
+export type FixtureDucklingData = FixtureUserData & {
+    ducklingId: string,
+}

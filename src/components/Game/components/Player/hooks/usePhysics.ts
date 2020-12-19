@@ -4,21 +4,33 @@ import {useBody} from "../../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../../physics/bodies";
 import {getPlayerUuid} from "../../../../../shared/uuids";
 
+export const collisionRadius = 6
+
 export const usePhysics = (ref: MutableRefObject<Object3D>) => {
 
     const [,api] = useBody(() => ({
         type: BodyType.dynamic,
         linearDamping: 4,
-        fixtures: [{
-            shape: BodyShape.box,
-            hx: 0.6,
-            hy: 1.2,
-            fixtureOptions: {},
-        }],
+        fixtures: [
+            {
+                shape: BodyShape.box,
+                hx: 0.6,
+                hy: 1.2,
+                fixtureOptions: {},
+            },
+            {
+                shape: BodyShape.circle,
+                radius: collisionRadius,
+                fixtureOptions: {
+                    isSensor: true,
+                },
+            }
+        ],
     }), {
         fwdRef: ref,
         applyAngle: true,
-        uuid: getPlayerUuid()
+        uuid: getPlayerUuid(),
+        listenForCollisions: true,
     })
 
     return [api]

@@ -17,6 +17,7 @@ export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
                 density: 5,
                 userData: {
                     fixtureType: FixtureType.DUCKLING,
+                    ducklingId: id,
                 }
             },
         }],

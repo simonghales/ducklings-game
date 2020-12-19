@@ -1,8 +1,11 @@
-import {MutableRefObject} from "react";
-import {Group} from "three";
+import {MutableRefObject, useCallback, useMemo} from "react";
+import {Group, Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {playerGroupRef} from "../../../../../global/state/refs";
 import {numLerp} from "../../../../../utils/numbers";
+import {useDucklingsInRange} from "../../Player/state/ducklings";
+import {getStoredMesh} from "../../../../../workers/logic/state/meshes";
+import {getDucklingUuid} from "../../../../../shared/uuids";
 
 const localState = {
     playerPreviousX: 0,
@@ -11,9 +14,47 @@ const localState = {
     previousYDiff: 0,
 }
 
+const useDucklingsInRangeObjects = () => {
+    const ducklingsInRange = useDucklingsInRange()
+
+    return useMemo(() => {
+        let objects: Object3D[] = []
+        ducklingsInRange.forEach((ducklingId) => {
+            const object = getStoredMesh(getDucklingUuid(ducklingId))
+            if (object) {
+                objects.push(object)
+            }
+        })
+        return objects
+    }, [ducklingsInRange])
+
+}
+
+const calculateAveragePosition = (objects: Object3D[]): [x: number, y: number] | null => {
+    if (objects.length === 0) return null
+    let totalX = 0
+    let totalY = 0
+    objects.forEach((object, index) => {
+        if (index === 0) {
+            totalX = object.position.x
+            totalY = object.position.y
+        } else {
+            totalX += object.position.x
+            totalY += object.position.y
+        }
+    })
+    const avgX = totalX / objects.length
+    const avgY = totalY / objects.length
+    return [avgX, avgY]
+}
+
 export const useFollow = (ref: MutableRefObject<Group>) => {
 
-    useFrame((state, delta) => {
+    const ducklingsInRange = useDucklingsInRangeObjects()
+
+    const onFrame = useCallback((state: any, delta: number) => {
+
+        const averagePosition = calculateAveragePosition(ducklingsInRange)
 
         const cameraCurrentX = ref.current.position.x
         const cameraCurrentY = ref.current.position.y
@@ -39,12 +80,19 @@ export const useFollow = (ref: MutableRefObject<Group>) => {
         localState.previousXDiff = adjustedXDiff
         localState.previousYDiff = adjustedYDiff
 
-        const cameraX = playerX + adjustedXDiff
-        const cameraY = playerY + adjustedYDiff
+        let cameraX = playerX + adjustedXDiff
+        let cameraY = playerY + adjustedYDiff
+
+        if (averagePosition) {
+            cameraX = numLerp(averagePosition[0], cameraX, 0.66)
+            cameraY = numLerp(averagePosition[1], cameraY, 0.66)
+        }
 
         ref.current.position.x = numLerp(cameraCurrentX, cameraX, 0.05)
         ref.current.position.y = numLerp(cameraCurrentY, cameraY, 0.05)
 
-    })
+    }, [ducklingsInRange])
+
+    useFrame(onFrame)
 
 }
