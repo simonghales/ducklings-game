@@ -2,7 +2,7 @@
 
 import {WorkerMessageType, WorkerOwnerMessageType} from "./types";
 import {initPhysicsListeners, stepWorld, syncData} from "../../physics/world";
-import {syncBodies} from "./functions";
+import {logicWorkerStorage, syncBodies} from "./functions";
 import {addBody, removeBody, setBody, updateBody} from "../../physics/bodies";
 import {
     dynamicBodiesUuids,
@@ -97,6 +97,7 @@ self.onmessage = (event: MessageEvent) => {
     if (event.data.command) {
         if (event.data.command === "connect") {
             logicWorkerPort = event.ports[0];
+            logicWorkerStorage.worker = logicWorkerPort
             logicWorkerPort.onmessage = onMessageFromLogicWorker;
             return
         } else if (event.data.command === "forward") {

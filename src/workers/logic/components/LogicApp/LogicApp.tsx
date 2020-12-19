@@ -7,14 +7,16 @@ import {WorkerMessageType, WorkerOwnerMessageType} from "../../../physics/types"
 import {
     applyPositionAngle,
     Buffers,
-    handleBeginCollision,
-    handleEndCollision,
     storedPhysicsData
 } from "../../../../physics/components/Physics/data";
 import { LogicAppContext } from "./context";
 import {Object3D} from "three";
 import {ValidUUID} from "../../../../utils/ids";
 import Player from "../Player/Player";
+import CollisionsProvider from "../../../../physics/components/CollisionsProvider/CollisionsProvider";
+import {useCollisionsProviderContext} from "../../../../physics/components/CollisionsProvider/context";
+import WorkerCommunication from "../WorkerCommunication/WorkerCommunication";
+import {MessageData} from "../../../../shared/messaging/types";
 
 export const workerStorage: {
     worker: Worker | null,
@@ -49,6 +51,7 @@ const LogicApp: React.FC = () => {
     const stateProxy = useProxy(logicAppState)
     const [worker, setWorker] = useState<Worker | null>(null)
     const workerLoaded = stateProxy.workerLoaded
+    const {handleBeginCollision, handleEndCollision} = useCollisionsProviderContext()
 
     const [meshSubscriptions] = useState(() => new Map<ValidUUID, MeshSubscription>())
 
@@ -161,4 +164,16 @@ const LogicApp: React.FC = () => {
     )
 }
 
-export default LogicApp
+const LogicAppWrapper: React.FC<{
+    sendMessageToMain: (message: MessageData) => void,
+}> = ({sendMessageToMain}) => {
+    return (
+        <WorkerCommunication sendMessageToMain={sendMessageToMain}>
+            <CollisionsProvider>
+                <LogicApp/>
+            </CollisionsProvider>
+        </WorkerCommunication>
+    )
+}
+
+export default LogicAppWrapper

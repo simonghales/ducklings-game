@@ -25,18 +25,6 @@ export type CollisionEventProps = {
     }
 }
 
-export const handleBeginCollision = (data: CollisionEventProps) => {
-    if (collisionStartedEvents[data.uuid]) {
-        collisionStartedEvents[data.uuid](data.data, data.fixtureIndex)
-    }
-}
-
-export const handleEndCollision = (data: CollisionEventProps) => {
-    if (collisionEndedEvents[data.uuid]) {
-        collisionEndedEvents[data.uuid](data.data, data.fixtureIndex)
-    }
-}
-
 export const storedPhysicsData: {
     bodies: {
         [uuid: string]: number,

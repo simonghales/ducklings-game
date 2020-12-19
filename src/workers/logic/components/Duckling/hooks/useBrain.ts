@@ -213,8 +213,6 @@ const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
 
         const uuid = getDucklingUuid(previousDuckling.id)
 
-        console.log(`duckling ${id} targetUuid`, uuid)
-
         return uuid
 
     }, [id, order, sortedDucklings])

@@ -13,4 +13,5 @@ export enum WorkerOwnerMessageType {
     SYNC_BODIES,
     BEGIN_COLLISION,
     END_COLLISION,
+    MESSAGE,
 }

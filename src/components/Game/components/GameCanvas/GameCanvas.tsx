@@ -6,18 +6,21 @@ import Lights from "../Lights/Lights";
 import Player from "../Player/Player";
 import Ducklings from "../Ducklings/Ducklings";
 import Physics from "../../../../physics/components/Physics/Physics";
+import Messages from "../../../Messages/Messages";
 
 const GameCanvas: React.FC = () => {
     return (
         <Canvas shadowMap>
-            <Physics>
-                <Lights/>
-                <Camera/>
-                <Player/>
-                {/*<FollowTargets/>*/}
-                <Water/>
-                <Ducklings/>
-            </Physics>
+            <Messages>
+                <Physics>
+                    <Lights/>
+                    <Camera/>
+                    <Player/>
+                    {/*<FollowTargets/>*/}
+                    <Water/>
+                    <Ducklings/>
+                </Physics>
+            </Messages>
         </Canvas>
     );
 };

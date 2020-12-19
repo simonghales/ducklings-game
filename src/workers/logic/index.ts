@@ -9,10 +9,6 @@ const setWorker = require("./test").setWorker
 
 let physicsWorkerPort: MessagePort
 
-const onMessageFromPhysicsWorker = (event: MessageEvent) => {
-    console.log("Worker 1 received a message from worker 2: " + event.data);
-};
-
 const selfWorker = self as unknown as Worker
 
 selfWorker.onmessage = (event: MessageEvent) => {
@@ -22,8 +18,6 @@ selfWorker.onmessage = (event: MessageEvent) => {
         // Setup connection to worker 1
         case "connect":
             physicsWorkerPort = event.ports[0];
-            physicsWorkerPort.onmessage = onMessageFromPhysicsWorker;
-            physicsWorkerPort.postMessage("hey there!")
             setWorker(physicsWorkerPort as unknown as Worker)
             return
 

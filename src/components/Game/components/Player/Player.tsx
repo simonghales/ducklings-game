@@ -5,9 +5,6 @@ import {Object3D} from "three";
 import {usePhysics} from "./hooks/usePhysics";
 import {playerGroupRef, useStoreRef} from "../../../../global/state/refs";
 import PlayerUIHelper from "./components/PlayerUIHelper/PlayerUIHelper";
-import { Box } from "@react-three/drei";
-import TargetHelper from "../TargetHelper/TargetHelper";
-import {getDucklingTargetHelperRefKey} from "../Ducklings/components/Duckling/Duckling";
 
 const Player: React.FC = () => {
 

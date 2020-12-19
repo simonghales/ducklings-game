@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import GameCanvas from "./components/GameCanvas/GameCanvas";
 import Inputs from "./components/Inputs/Inputs";
+import Messages from "../Messages/Messages";
 
 const StyledContainer = styled.div`
     position: absolute;
