@@ -8,6 +8,7 @@ import {applyPositionAngle, collisionEndedEvents, collisionStartedEvents, stored
 import {PhysicsCacheKeys} from "../../cache";
 import {usePhysicsProvider} from "../PhysicsProvider/context";
 import {ValidUUID} from "../../../utils/ids";
+import {useCollisionsProviderContext} from "../CollisionsProvider/context";
 
 export type BodyApi = {
     applyForceToCenter: (vec: Vec2) => void,
@@ -95,22 +96,49 @@ export const useBodyApi = (uuid: ValidUUID): BodyApi => {
 
 }
 
+export const useCollisionEvents = (
+                                    uuid: ValidUUID,
+                                    onCollideStart?: (data: any, fixtureIndex: number) => void,
+                                    onCollideEnd?: (data: any, fixtureIndex: number) => void,
+                                    ) => {
+
+    const {
+        addCollisionHandler,
+        removeCollisionHandler
+    } = useCollisionsProviderContext()
+
+    useEffect(() => {
+        if (onCollideStart) {
+            addCollisionHandler(true, uuid, onCollideStart)
+            return () => {
+                removeCollisionHandler(true, uuid)
+            }
+        }
+    }, [uuid, onCollideStart])
+
+    useEffect(() => {
+        if (onCollideEnd) {
+            addCollisionHandler(false, uuid, onCollideEnd)
+            return () => {
+                removeCollisionHandler(false, uuid)
+            }
+        }
+    }, [uuid, onCollideEnd])
+
+}
+
 export const useBody = (propsFn: () => AddBodyDef, {
     applyAngle = false,
     cacheKey,
     uuid: passedUUID,
     fwdRef,
-    onCollideEnd,
-    onCollideStart,
-    debug
+    listenForCollisions = false,
 }: {
+    listenForCollisions?: boolean,
     applyAngle?: boolean,
     cacheKey?: PhysicsCacheKeys,
     uuid?: string | number,
     fwdRef?: MutableRefObject<Object3D>,
-    onCollideStart?: (data: any, fixtureIndex: number) => void,
-    onCollideEnd?: (data: any, fixtureIndex: number) => void,
-    debug?: string
 }): [any, BodyApi, string | number] => {
     const localRef = useRef<Object3D>((null as unknown) as Object3D)
     const ref = fwdRef ? fwdRef : localRef
@@ -128,22 +156,14 @@ export const useBody = (propsFn: () => AddBodyDef, {
     const {
         workerAddBody,
         workerRemoveBody,
-        workerSetBody,
-        workerUpdateBody
     } = usePhysicsProvider()
+
     useLayoutEffect(() => {
 
         const props = propsFn()
 
         ref.current.position.x = props.position?.x || 0
         ref.current.position.z = props.position?.y || 0
-
-        const listenForCollisions = !!onCollideStart || !!onCollideEnd
-
-        if (listenForCollisions) {
-            collisionStartedEvents[uuid] = onCollideStart ? onCollideStart : () => {}
-            collisionEndedEvents[uuid] = onCollideEnd ? onCollideEnd : () => {}
-        }
 
         workerAddBody({
             uuid,
@@ -153,12 +173,6 @@ export const useBody = (propsFn: () => AddBodyDef, {
         })
 
         return () => {
-
-            if (listenForCollisions) {
-                delete collisionStartedEvents[uuid]
-                delete collisionEndedEvents[uuid]
-            }
-
             workerRemoveBody({uuid, cacheKey})
         }
 

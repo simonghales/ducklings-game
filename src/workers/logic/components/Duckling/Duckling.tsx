@@ -7,6 +7,7 @@ import {useSyncBody} from "../LogicApp/hooks/useSyncBody";
 import {getDucklingUuid} from "../../../../shared/uuids";
 import {useStoreMesh} from "../../state/meshes";
 import { DucklingContext } from "./context";
+import {useCollisionHandling} from "./hooks/useCollisionHandling";
 
 const Duckling: React.FC<{
     id: string,
@@ -17,6 +18,7 @@ const Duckling: React.FC<{
     const api = useBodyApi(uuid)
     useStoreMesh(uuid, ref.current)
     useSyncBody(uuid, ref)
+    useCollisionHandling(uuid, id)
     useBrain(id, ref, api)
 
     useEffect(() => {

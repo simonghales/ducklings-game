@@ -1,18 +1,20 @@
-import React, {useCallback, useEffect, useLayoutEffect, useState} from "react";
+import React, {useEffect, useLayoutEffect, useState} from "react";
 import {
-    handleBeginCollision,
-    handleEndCollision,
-    maxNumberOfDynamicPhysicObjects,
     storedPhysicsData
 } from "./data";
 import {WorkerMessageType, WorkerOwnerMessageType} from "../../../workers/physics/types";
 import PhysicsProvider, {useBuffers} from "../PhysicsProvider/PhysicsProvider";
+import CollisionsProvider from "../CollisionsProvider/CollisionsProvider";
+import {useCollisionsProviderContext} from "../CollisionsProvider/context";
+import {useMessagesContext} from "../../../components/Messages/context";
+import {MessageData} from "../../../shared/messaging/types";
 
 const Physics: React.FC = ({children}) => {
 
     const [gamePhysicsWorker] = useState(() => new Worker('../../../workers/physics', { name: 'gamePhysicsWorker', type: 'module' }))
     const [logicWorker] = useState(() => new Worker('../../../workers/logic', { name: 'logicWorker', type: 'module' }))
     const buffers = useBuffers()
+    const {handleBeginCollision, handleEndCollision} = useCollisionsProviderContext()
 
     useLayoutEffect(() => {
 
@@ -83,6 +85,26 @@ const Physics: React.FC = ({children}) => {
 
     }, [])
 
+    const {
+        handleMessage,
+    } = useMessagesContext()
+
+    useEffect(() => {
+
+        logicWorker.onmessage= (event: MessageEvent) => {
+
+            const type = event.data.type
+
+            switch (type) {
+                case WorkerOwnerMessageType.MESSAGE:
+                    handleMessage(event.data.message as MessageData)
+                    break;
+            }
+
+        }
+
+    }, [])
+
     return (
         <PhysicsProvider buffers={buffers} worker={gamePhysicsWorker}>
             {children}
@@ -90,4 +112,14 @@ const Physics: React.FC = ({children}) => {
     )
 };
 
-export default Physics;
+const PhysicsWrapper: React.FC = ({children}) => {
+    return (
+        <CollisionsProvider>
+            <Physics>
+                {children}
+            </Physics>
+        </CollisionsProvider>
+    )
+}
+
+export default PhysicsWrapper;

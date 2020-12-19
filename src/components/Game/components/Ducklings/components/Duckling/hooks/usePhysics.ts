@@ -3,6 +3,7 @@ import {Object3D} from "three";
 import {useBody} from "../../../../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../../../../physics/bodies";
 import {getDucklingUuid} from "../../../../../../../shared/uuids";
+import {FixtureType} from "../../../../../../../shared/fixtures";
 
 export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
 
@@ -14,12 +15,16 @@ export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
             radius: 0.1,
             fixtureOptions: {
                 density: 5,
+                userData: {
+                    fixtureType: FixtureType.DUCKLING,
+                }
             },
         }],
     }), {
         uuid: getDucklingUuid(id),
         fwdRef: ref,
         applyAngle: true,
+        listenForCollisions: true,
     })
 
     return [api]
