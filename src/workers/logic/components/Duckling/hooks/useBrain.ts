@@ -223,7 +223,124 @@ const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
     return targetUuid
 }
 
-const useMovementMethod = (
+type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, closeOptions?: {
+    range: number,
+    onClose: () => void,
+}) => void
+
+const useMoveTowards = (api: BodyApi) => {
+
+    const localStateRef = useRef<{
+        previousMeshX: number,
+        previousMeshY: number,
+        previousXVel: number,
+        previousYVel: number,
+        previousXDir: number,
+        previousYDir: number,
+        previousTargetX: number,
+        previousTargetY: number,
+        requestedPosition: null | number,
+        requestedPositionTimestamp: number,
+        positionCooldown: number,
+        lerpedTargetX: number,
+        lerpedTargetY: number,
+    }>({
+        previousXVel: 0,
+        previousYVel: 0,
+        previousMeshX: 0,
+        previousMeshY: 0,
+        previousXDir: 0,
+        previousYDir: 0,
+        previousTargetX: 0,
+        previousTargetY: 0,
+        requestedPosition: null,
+        requestedPositionTimestamp: 0,
+        positionCooldown: 0,
+        lerpedTargetX: 0,
+        lerpedTargetY: 0,
+    })
+
+    return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, closeOptions?: {
+        range: number,
+        onClose: () => void,
+    }) => {
+
+        const localState = localStateRef.current
+
+        const moveXDiff = targetX - self.position.x
+        const moveYDiff = targetY - self.position.y
+
+        let vectorAngle = Math.atan2(moveYDiff, moveXDiff) - radians(90)
+
+        if (vectorAngle > PI) {
+            vectorAngle -= PI_TIMES_TWO
+        }
+
+        const xDir = Math.sin(vectorAngle)
+        const yDir = Math.cos(vectorAngle)
+
+        localState.previousXDir = xDir
+        localState.previousYDir = yDir
+
+        const adjustedXDir = numLerp(xDir, localState.previousXDir, 55 * delta)
+        const adjustedYDir = numLerp(yDir, localState.previousYDir, 55 * delta)
+
+        localState.previousXDir = adjustedXDir
+        localState.previousYDir = adjustedYDir
+
+        let xValue = Math.floor(Math.abs(moveXDiff) * 1000) / 1000
+
+        if (xValue > 2) {
+            xValue = 2
+        }
+
+        let xVel = Math.pow(xValue, 1.75)
+
+        let yValue = Math.floor(Math.abs(moveYDiff) * 1000) / 1000
+
+        if (yValue > 2) {
+            yValue = 2
+        }
+
+        let yVel = Math.pow(yValue, 1.75)
+
+        if (moveXDiff < 0) {
+            xVel *= -1
+        }
+
+        if (moveYDiff < 0) {
+            yVel *= -1
+        }
+
+        xVel = xVel * 2
+        yVel = yVel * 2
+
+        xVel = xVel * 35 * delta
+        yVel = yVel * 35 * delta
+
+        // todo - implement maximum
+
+        vector.set(xVel, yVel)
+
+        api.applyForceToCenter(vector)
+
+        localState.previousTargetX = targetX
+        localState.previousTargetY = targetY
+        localState.previousXVel = xVel
+        localState.previousYVel = yVel
+
+        if (closeOptions) {
+            const {range, onClose} = closeOptions
+
+            // check if within range
+            // if so, call onClose callback...
+
+        }
+
+    }, [api])
+}
+
+const useFollowMethod = (
     ref: MutableRefObject<Object3D>,
     api: BodyApi, targetUuid: ValidUUID | null,
     setTempTarget: UpdateFn,
@@ -402,19 +519,32 @@ const useMovementMethod = (
     }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget])
 }
 
+export const useForageMethod = (self: Object3D, moveTowards: MoveTowardFn) => {
+    return useCallback((delta: number) => {
+        moveTowards(delta, self, -2, -2)
+    }, [self, moveTowards])
+}
+
 export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyApi) => {
 
-    const {order} = useDuckling(id)
+    const {order, isFollowingPlayer} = useDuckling(id)
 
     const targetUuid = useDucklingTargetUuid(id, order)
     const [targetObject, refetchTargetObject] = useTargetObject(targetUuid)
     const [tempTarget, setTempTarget, isValidTarget] = useTempTargetObject(order)
-    const movementMethod = useMovementMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget)
+    const moveTowards = useMoveTowards(api)
+    const followMethod = useFollowMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget)
+    const forageMethod = useForageMethod(ref.current, moveTowards)
 
     const onFrame = useCallback((delta: number) => {
 
+        if (!isFollowingPlayer) {
+            forageMethod(delta)
+            return
+        }
+
         if (tempTarget) {
-            return movementMethod(delta, tempTarget.object, true)
+            return followMethod(delta, tempTarget.object, true)
         }
 
         if (!targetObject) {
@@ -424,9 +554,9 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
             return
         }
 
-        movementMethod(delta, targetObject)
+        followMethod(delta, targetObject)
 
-    }, [targetUuid, targetObject, refetchTargetObject, tempTarget])
+    }, [targetUuid, targetObject, refetchTargetObject, tempTarget, forageMethod, followMethod, isFollowingPlayer])
 
     useIntervalFrame(onFrame)
 

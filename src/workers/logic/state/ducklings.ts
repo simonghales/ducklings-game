@@ -3,12 +3,14 @@ import create from "zustand";
 export type DucklingState = {
     id: string,
     order: number,
+    isFollowingPlayer: boolean,
 }
 
 const generateDucklingState = (id: string, order: number): DucklingState => {
     return {
         id,
         order,
+        isFollowingPlayer: false,
     }
 }
 
