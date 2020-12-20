@@ -22,7 +22,7 @@ const Water: React.FC = () => {
             <Plane args={[20, 20]} receiveShadow>
                 <meshPhongMaterial color={`#223f56`} />
             </Plane>
-            {/*<gridHelper args={[20, 20]} rotation={[radians(90), 0, 0]}/>*/}
+            <gridHelper args={[20, 20, 'black', 'black']} rotation={[radians(90), 0, 0]}/>
         </>
     );
 };

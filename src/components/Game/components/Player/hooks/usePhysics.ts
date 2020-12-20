@@ -4,7 +4,7 @@ import {useBody} from "../../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../../physics/bodies";
 import {getPlayerUuid} from "../../../../../shared/uuids";
 
-export const collisionRadius = 6
+export const collisionRadius = 8
 
 export const usePhysics = (ref: MutableRefObject<Object3D>) => {
 
@@ -13,9 +13,8 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
         linearDamping: 4,
         fixtures: [
             {
-                shape: BodyShape.box,
-                hx: 0.6,
-                hy: 1.2,
+                shape: BodyShape.circle,
+                radius: 0.5,
                 fixtureOptions: {},
             },
             {

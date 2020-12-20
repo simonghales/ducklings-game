@@ -163,7 +163,7 @@ export const useBody = (propsFn: () => AddBodyDef, {
         const props = propsFn()
 
         ref.current.position.x = props.position?.x || 0
-        ref.current.position.z = props.position?.y || 0
+        ref.current.position.y = props.position?.y || 0
 
         workerAddBody({
             uuid,

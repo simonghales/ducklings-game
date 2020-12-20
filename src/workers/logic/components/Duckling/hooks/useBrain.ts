@@ -108,7 +108,7 @@ const useCheckForReachedTarget = (setTempTarget: UpdateFn) => {
 
         const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
 
-        if (currentDistance < 2) {
+        if (currentDistance < 1) {
             setClaimedPosition(position)
         }
 
@@ -181,7 +181,7 @@ const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: st
                 const ducklingDistance = calculateCheapDistance(currentX, ducklingObject.position.x, currentY, ducklingObject.position.y)
                 if (ducklingDistance < currentDistance) {
                     const difference = currentDistance - ducklingDistance
-                    if (difference > 1.5) {
+                    if (difference > 2) {
                         setTempTarget({
                             id: ducklingId,
                             order: ducklingPosition,

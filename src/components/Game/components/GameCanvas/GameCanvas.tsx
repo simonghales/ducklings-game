@@ -19,7 +19,11 @@ const GameCanvas: React.FC = () => {
                     <Player/>
                     {/*<FollowTargets/>*/}
                     <Water/>
-                    <DuckWeed/>
+                    <DuckWeed initialPosition={[1, 1]}/>
+                    <DuckWeed initialPosition={[1.5, 1.5]}/>
+                    <DuckWeed initialPosition={[0.5, 1.75]}/>
+                    <DuckWeed initialPosition={[0.5, 1.5]}/>
+                    <DuckWeed initialPosition={[1.75, 0.75]}/>
                     <Ducklings/>
                 </Physics>
             </Messages>

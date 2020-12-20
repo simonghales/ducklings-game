@@ -1,4 +1,4 @@
-import {BodyDef, Body, Box, Circle, FixtureOpt, Vec2} from "planck-js";
+import {BodyDef, Body, Box, Circle, FixtureOpt, Vec2, RopeJoint, Joint} from "planck-js";
 import {dynamicBodiesUuids, existingBodies, planckWorld} from "./shared";
 import {Shape} from "planck-js/lib/shape";
 import {syncBodies} from "../workers/physics/functions";
@@ -38,12 +38,13 @@ export type AddBodyDef = BasicBodyProps | AddBoxBodyProps | AddCircleBodyProps
 export type AddBodyProps = AddBodyDef & {
     uuid: string | number,
     listenForCollisions: boolean,
-    cacheKey?: PhysicsCacheKeys
+    cacheKey?: PhysicsCacheKeys,
+    attachToRope?: boolean,
 }
 
 // todo - add support for multiple fixtures...
 
-export const addBody = ({uuid, cacheKey, listenForCollisions, fixtures = [], ...props}: AddBodyProps) => {
+export const addBody = ({uuid, cacheKey, listenForCollisions, fixtures = [], attachToRope = false, ...props}: AddBodyProps) => {
 
     const existingBody = existingBodies.get(uuid)
 
@@ -164,6 +165,32 @@ export const addBody = ({uuid, cacheKey, listenForCollisions, fixtures = [], ...
                     if (body) {
                         body.createFixture(bodyShape)
                     }
+                }
+
+                if (attachToRope) {
+
+                    const {position, angle} = props
+
+                    const ropeJointDef = {
+                        maxLength: 0.25,
+                        localAnchorA: position,
+                        localAnchorB: position
+                    };
+
+                    const startingBodyDef: BodyDef = {
+                        type: BodyType.static,
+                        fixedRotation: true,
+                        position,
+                        angle,
+                    }
+
+                    const startingBody = planckWorld.createBody(startingBodyDef)
+
+                    if (body) {
+                        const rope = planckWorld.createJoint(RopeJoint(ropeJointDef, startingBody, body, position ?? Vec2(0, 0)) as unknown as Joint);
+                    }
+
+
                 }
 
             })
