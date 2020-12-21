@@ -10,7 +10,7 @@ const generateDucklingState = (id: string, order: number | null): DucklingState 
     return {
         id,
         order,
-        isFollowingPlayer: false,
+        isFollowingPlayer: true,
     }
 }
 
@@ -24,11 +24,11 @@ type DucklingsStateStore = {
 
 export const useDucklingsState = create<DucklingsStateStore>(set => ({
    ducklings: {
-       'A': generateDucklingState('A', null),
-       'B': generateDucklingState('B', null),
-       'C': generateDucklingState('C', null),
-       'D': generateDucklingState('D', null),
-       'E': generateDucklingState('E', null),
+       'A': generateDucklingState('A', 0),
+       'B': generateDucklingState('B', 1),
+       'C': generateDucklingState('C', 2),
+       'D': generateDucklingState('D', 3),
+       'E': generateDucklingState('E', 4),
    },
     updateDuckling: (id: string, update: Partial<DucklingState>) => {
        return set(state => {
@@ -111,6 +111,9 @@ export const getSortedDucklings = (ducklings?: DucklingState[]): DucklingState[]
     return Object.values(useDucklingsState.getState().ducklings).filter(filterDucklings).sort(sortDucklings)
 }
 
+export const getNumberOfFollowingDucklings = (): number => {
+    return getSortedDucklings().length
+}
 
 export const useSortedDucklings = (): DucklingState[] => {
     const ducklings = useDucklings()

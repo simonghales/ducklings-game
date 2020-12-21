@@ -7,6 +7,8 @@ import {FixtureType} from "../../../../../shared/fixtures";
 import {Vec2} from "planck-js";
 
 export const collisionRadius = 8
+export const mediumRadius = 3
+export const closeRadius = 1.5
 
 export const usePhysics = (ref: MutableRefObject<Object3D>) => {
 
@@ -27,6 +29,24 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
             {
                 shape: BodyShape.circle,
                 radius: collisionRadius,
+                fixtureOptions: {
+                    isSensor: true,
+                    userData: {
+                    }
+                },
+            },
+            {
+                shape: BodyShape.circle,
+                radius: mediumRadius,
+                fixtureOptions: {
+                    isSensor: true,
+                    userData: {
+                    }
+                },
+            },
+            {
+                shape: BodyShape.circle,
+                radius: closeRadius,
                 fixtureOptions: {
                     isSensor: true,
                     userData: {

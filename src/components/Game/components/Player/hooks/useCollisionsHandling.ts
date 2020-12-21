@@ -5,9 +5,11 @@ import {FixtureDucklingData, FixtureType, FixtureUserData} from "../../../../../
 import {setDucklingInRange} from "../state/ducklings";
 
 // matches usePhysics
-enum Fixtures {
+export enum Fixtures {
     BODY,
-    SENSOR
+    LARGE_SENSOR,
+    MEDIUM_SENSOR,
+    SMALL_SENSOR,
 }
 
 export const useCollisionsHandling = () => {
@@ -28,7 +30,7 @@ export const useCollisionsHandling = () => {
         switch (fixtureIndex) {
             case Fixtures.BODY:
                 break;
-            case Fixtures.SENSOR:
+            case Fixtures.LARGE_SENSOR:
                 onLargeCollider(true, data)
                 break;
         }
@@ -38,7 +40,7 @@ export const useCollisionsHandling = () => {
         switch (fixtureIndex) {
             case Fixtures.BODY:
                 break;
-            case Fixtures.SENSOR:
+            case Fixtures.LARGE_SENSOR:
                 onLargeCollider(false, data)
                 break;
         }

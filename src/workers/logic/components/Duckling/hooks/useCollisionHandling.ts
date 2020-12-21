@@ -5,7 +5,7 @@ import {FixtureType, FixtureUserData} from "../../../../../shared/fixtures";
 import {useWorkerCommunicationContext} from "../../WorkerCommunication/context";
 import {getDucklingMessageKey} from "../../../../../shared/messaging/keys";
 import {DucklingMessageDataType} from "../../../../../shared/messaging/types";
-import {updateDuckling} from "../../../state/ducklings";
+import {getNumberOfFollowingDucklings, updateDuckling} from "../../../state/ducklings";
 
 const useOnDucklingCollide = (id: string) => {
 
@@ -31,7 +31,7 @@ const useOnPlayerCollide = (id: string) => {
 
         updateDuckling(id, {
             isFollowingPlayer: true,
-            order: 0,
+            order: getNumberOfFollowingDucklings(),
         })
 
     }, [id])

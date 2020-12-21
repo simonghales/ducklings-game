@@ -17,6 +17,7 @@ import {useDuckling} from "./useDuckling";
 import {useDucklingId} from "../context";
 import {useMounted} from "../../../../../shared/hooks/mounted";
 import {proxy} from "valtio";
+import {getVectorLength, limitVector, normalizeVector} from "../../../../../utils/vectors";
 
 const vector = Vec2(0, 0)
 
@@ -67,7 +68,6 @@ const useTempTargetObject = (order: number | null): [TempTarget | null, UpdateFn
     }, [tempTargetId, setTempTargetObject])
 
     useEffect(() => {
-        console.log('order', order)
         setTempTargetObject(null)
     }, [order])
 
@@ -109,7 +109,7 @@ const useCheckForReachedTarget = (setTempTarget: UpdateFn) => {
 
         const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
 
-        if (currentDistance < 1) {
+        if (currentDistance < 0.1) {
             setClaimedPosition(position)
         }
 
@@ -323,17 +323,19 @@ const useMoveTowards = (api: BodyApi) => {
         xVel = xVel * 35 * delta
         yVel = yVel * 35 * delta
 
-        // todo - implement maximum
+        const maximumVel = 60 * delta
 
-        vector.set(xVel, yVel)
+        const [finalX, finalY] = limitVector(xVel, yVel, maximumVel)
+
+        vector.set(finalX, finalY)
 
         api.applyForceToCenter(vector)
         api.setAngle(angle)
 
         localState.previousTargetX = targetX
         localState.previousTargetY = targetY
-        localState.previousXVel = xVel
-        localState.previousYVel = yVel
+        localState.previousXVel = finalX
+        localState.previousYVel = finalY
 
     }, [api])
 }
