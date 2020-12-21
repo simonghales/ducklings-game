@@ -2,6 +2,7 @@ import {ValidUUID} from "../utils/ids";
 
 export enum FixtureType {
     DUCKLING,
+    PLAYER,
 }
 
 export type FixtureUserData = {

@@ -32,7 +32,7 @@ type TempTarget = {
 
 type UpdateFn = (update: TempTarget | null) => void
 
-const useTempTargetObject = (order: number): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
+const useTempTargetObject = (order: number | null): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
 
     const [targetCooldown, setTargetCooldown] = useState('')
     const [tempTarget, setTempTargetObject] = useState<TempTarget | null>(null)
@@ -67,6 +67,7 @@ const useTempTargetObject = (order: number): [TempTarget | null, UpdateFn, (id: 
     }, [tempTargetId, setTempTargetObject])
 
     useEffect(() => {
+        console.log('order', order)
         setTempTargetObject(null)
     }, [order])
 
@@ -200,11 +201,13 @@ const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: st
 
 }
 
-const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
+const useDucklingTargetUuid = (id: string, order: number | null): ValidUUID | null => {
 
     const sortedDucklings = useSortedDucklings()
 
     const targetUuid = useMemo<ValidUUID | null>(() => {
+
+        if (order == null) return null
 
         const ducklingIndex = sortedDucklings.findIndex((duckling) => duckling.id === id)
 
@@ -223,10 +226,7 @@ const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
     return targetUuid
 }
 
-type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, closeOptions?: {
-    range: number,
-    onClose: () => void,
-}) => void
+type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance?: number) => void
 
 const useMoveTowards = (api: BodyApi) => {
 
@@ -260,15 +260,20 @@ const useMoveTowards = (api: BodyApi) => {
         lerpedTargetY: 0,
     })
 
-    return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, closeOptions?: {
-        range: number,
-        onClose: () => void,
-    }) => {
+    return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance: number = 0) => {
 
         const localState = localStateRef.current
 
-        const moveXDiff = targetX - self.position.x
-        const moveYDiff = targetY - self.position.y
+        let moveXDiff = targetX - self.position.x
+        let moveYDiff = targetY - self.position.y
+
+        if (Math.abs(moveXDiff) < allowedDistance) {
+            moveXDiff = 0
+        }
+
+        if (Math.abs(moveYDiff) < allowedDistance) {
+            moveYDiff = 0
+        }
 
         let vectorAngle = Math.atan2(moveYDiff, moveXDiff) - radians(90)
 
@@ -323,19 +328,12 @@ const useMoveTowards = (api: BodyApi) => {
         vector.set(xVel, yVel)
 
         api.applyForceToCenter(vector)
+        api.setAngle(angle)
 
         localState.previousTargetX = targetX
         localState.previousTargetY = targetY
         localState.previousXVel = xVel
         localState.previousYVel = yVel
-
-        if (closeOptions) {
-            const {range, onClose} = closeOptions
-
-            // check if within range
-            // if so, call onClose callback...
-
-        }
 
     }, [api])
 }
@@ -346,41 +344,8 @@ const useFollowMethod = (
     setTempTarget: UpdateFn,
     isValidTarget: (id: string) => boolean,
     tempTarget: TempTarget | null,
+    moveTowards: MoveTowardFn,
 ) => {
-
-    const localStateRef = useRef<{
-        previousMeshX: number,
-        previousMeshY: number,
-        previousXVel: number,
-        previousYVel: number,
-        previousX: number,
-        previousY: number,
-        previousXDir: number,
-        previousYDir: number,
-        previousTargetX: number,
-        previousTargetY: number,
-        requestedPosition: null | number,
-        requestedPositionTimestamp: number,
-        positionCooldown: number,
-        lerpedTargetX: number,
-        lerpedTargetY: number,
-    }>({
-        previousX: 0,
-        previousY: 0,
-        previousXVel: 0,
-        previousYVel: 0,
-        previousMeshX: 0,
-        previousMeshY: 0,
-        previousXDir: 0,
-        previousYDir: 0,
-        previousTargetX: 0,
-        previousTargetY: 0,
-        requestedPosition: null,
-        requestedPositionTimestamp: 0,
-        positionCooldown: 0,
-        lerpedTargetX: 0,
-        lerpedTargetY: 0,
-    })
 
     const checkForCloserTarget = useCheckForCloserTarget(setTempTarget, isValidTarget)
     const checkForReachedTarget = useCheckForReachedTarget(setTempTarget)
@@ -390,14 +355,6 @@ const useFollowMethod = (
     }, [targetUuid])
 
     return useCallback((delta: number, targetObject: Object3D, isTempTarget: boolean = false) => {
-
-        const movedXDiff = Math.abs(ref.current.position.x - localStateRef.current.previousMeshX)
-        const movedYDiff = Math.abs(ref.current.position.y - localStateRef.current.previousMeshY)
-
-        localStateRef.current.previousMeshX = ref.current.position.x
-        localStateRef.current.previousMeshY = ref.current.position.y
-
-        const localState = localStateRef.current
 
         let targetX = targetObject.position.x
         let targetY = targetObject.position.y
@@ -434,81 +391,7 @@ const useFollowMethod = (
 
         let newAngle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
 
-        // newAngle = vectorAngle
-
-        const angleDifference = getRadianAngleDifference(prevAngle, newAngle)
-
-        // todo - account for delta?
-        // if (Math.abs(angleDifference) > 0.1) {
-        //     if (angleDifference > 0) {
-        //         newAngle = prevAngle + 0.1
-        //     } else {
-        //         newAngle = prevAngle - 0.1
-        //     }
-        // }
-        //
-        // if (newAngle > PI) {
-        //     newAngle -= PI_TIMES_TWO
-        // }
-
-        // console.log('angleDifference', angleDifference)
-
-        api.setAngle(newAngle)
-
-        const xDir = Math.sin(vectorAngle)
-        const yDir = Math.cos(vectorAngle)
-
-        localState.previousXDir = xDir
-        localState.previousYDir = yDir
-
-        const adjustedXDir = numLerp(xDir, localState.previousXDir, 55 * delta)
-        const adjustedYDir = numLerp(yDir, localState.previousYDir, 55 * delta)
-
-        localState.previousXDir = adjustedXDir
-        localState.previousYDir = adjustedYDir
-
-        let xValue = Math.floor(Math.abs(moveXDiff) * 1000) / 1000
-
-        if (xValue > 2) {
-            xValue = 2
-        }
-
-        let xVel = Math.pow(xValue, 1.75)
-
-        let yValue = Math.floor(Math.abs(moveYDiff) * 1000) / 1000
-
-        if (yValue > 2) {
-            yValue = 2
-        }
-
-        let yVel = Math.pow(yValue, 1.75)
-
-        if (moveXDiff < 0) {
-            xVel *= -1
-        }
-
-        if (moveYDiff < 0) {
-            yVel *= -1
-        }
-
-        xVel = xVel * 2
-        yVel = yVel * 2
-
-        xVel = xVel * 35 * delta
-        yVel = yVel * 35 * delta
-
-        // todo - implement maximum
-
-        vector.set(xVel, yVel)
-
-        api.applyForceToCenter(vector)
-
-        localState.previousTargetX = targetX
-        localState.previousTargetY = targetY
-        localState.previousX = targetObject.position.x
-        localState.previousY = targetObject.position.y
-        localState.previousXVel = xVel
-        localState.previousYVel = yVel
+        moveTowards(delta, ref.current, targetX, targetY, newAngle)
 
         if (isTempTarget && tempTarget) {
             checkForReachedTarget(ref.current, targetObject, tempTarget.order)
@@ -516,12 +399,30 @@ const useFollowMethod = (
             checkForCloserTarget(ref.current, targetX, targetY)
         }
 
-    }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget])
+    }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget, moveTowards])
 }
 
 export const useForageMethod = (self: Object3D, moveTowards: MoveTowardFn) => {
     return useCallback((delta: number) => {
-        moveTowards(delta, self, -2, -2)
+
+        const targetX = -2
+        const targetY = -2
+
+        const moveXDiff = targetX - self.position.x
+        const moveYDiff = targetY - self.position.y
+
+        let angle = self.rotation.z
+        let vectorAngle = Math.atan2(moveYDiff, moveXDiff) - radians(90)
+        if (vectorAngle > PI) {
+            vectorAngle -= PI_TIMES_TWO
+        }
+        let prevAngle = angle
+        if (prevAngle > PI) {
+            prevAngle -= PI_TIMES_TWO
+        }
+        angle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
+        moveTowards(delta, self, targetX, targetY, angle, 0.4)
+
     }, [self, moveTowards])
 }
 
@@ -533,7 +434,7 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
     const [targetObject, refetchTargetObject] = useTargetObject(targetUuid)
     const [tempTarget, setTempTarget, isValidTarget] = useTempTargetObject(order)
     const moveTowards = useMoveTowards(api)
-    const followMethod = useFollowMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget)
+    const followMethod = useFollowMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget, moveTowards)
     const forageMethod = useForageMethod(ref.current, moveTowards)
 
     const onFrame = useCallback((delta: number) => {
