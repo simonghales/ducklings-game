@@ -5,6 +5,7 @@ import {FixtureType, FixtureUserData} from "../../../../../shared/fixtures";
 import {useWorkerCommunicationContext} from "../../WorkerCommunication/context";
 import {getDucklingMessageKey} from "../../../../../shared/messaging/keys";
 import {DucklingMessageDataType} from "../../../../../shared/messaging/types";
+import {getNumberOfFollowingDucklings, updateDuckling} from "../../../state/ducklings";
 
 const useOnDucklingCollide = (id: string) => {
 
@@ -25,14 +26,31 @@ const useOnDucklingCollide = (id: string) => {
 
 }
 
+const useOnPlayerCollide = (id: string) => {
+    return useCallback(() => {
+
+        // updateDuckling(id, {
+        //     isFollowingPlayer: true,
+        //     order: getNumberOfFollowingDucklings(),
+        // })
+
+    }, [id])
+}
+
 export const useCollisionHandling = (uuid: ValidUUID, id: string) => {
 
     const onDucklingCollide = useOnDucklingCollide(id)
+    const onPlayerCollide = useOnPlayerCollide(id)
 
     const onCollisionStart = useCallback(({fixtureType}: FixtureUserData) => {
 
-        if (fixtureType === FixtureType.DUCKLING) {
-            onDucklingCollide()
+        switch (fixtureType) {
+            case FixtureType.PLAYER:
+                onPlayerCollide()
+                break;
+            case FixtureType.DUCKLING:
+                onDucklingCollide()
+                break;
         }
 
     }, [id])

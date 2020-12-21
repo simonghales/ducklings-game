@@ -17,6 +17,7 @@ import {useDuckling} from "./useDuckling";
 import {useDucklingId} from "../context";
 import {useMounted} from "../../../../../shared/hooks/mounted";
 import {proxy} from "valtio";
+import {getVectorLength, limitVector, normalizeVector} from "../../../../../utils/vectors";
 
 const vector = Vec2(0, 0)
 
@@ -32,7 +33,7 @@ type TempTarget = {
 
 type UpdateFn = (update: TempTarget | null) => void
 
-const useTempTargetObject = (order: number): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
+const useTempTargetObject = (order: number | null): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
 
     const [targetCooldown, setTargetCooldown] = useState('')
     const [tempTarget, setTempTargetObject] = useState<TempTarget | null>(null)
@@ -108,7 +109,7 @@ const useCheckForReachedTarget = (setTempTarget: UpdateFn) => {
 
         const currentDistance = calculateCheapDistance(currentX, targetX, currentY, targetY)
 
-        if (currentDistance < 1) {
+        if (currentDistance < 0.1) {
             setClaimedPosition(position)
         }
 
@@ -200,11 +201,13 @@ const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: st
 
 }
 
-const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
+const useDucklingTargetUuid = (id: string, order: number | null): ValidUUID | null => {
 
     const sortedDucklings = useSortedDucklings()
 
     const targetUuid = useMemo<ValidUUID | null>(() => {
+
+        if (order == null) return null
 
         const ducklingIndex = sortedDucklings.findIndex((duckling) => duckling.id === id)
 
@@ -223,21 +226,15 @@ const useDucklingTargetUuid = (id: string, order: number): ValidUUID | null => {
     return targetUuid
 }
 
-const useMovementMethod = (
-    ref: MutableRefObject<Object3D>,
-    api: BodyApi, targetUuid: ValidUUID | null,
-    setTempTarget: UpdateFn,
-    isValidTarget: (id: string) => boolean,
-    tempTarget: TempTarget | null,
-) => {
+type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance?: number) => void
+
+const useMoveTowards = (api: BodyApi) => {
 
     const localStateRef = useRef<{
         previousMeshX: number,
         previousMeshY: number,
         previousXVel: number,
         previousYVel: number,
-        previousX: number,
-        previousY: number,
         previousXDir: number,
         previousYDir: number,
         previousTargetX: number,
@@ -248,8 +245,6 @@ const useMovementMethod = (
         lerpedTargetX: number,
         lerpedTargetY: number,
     }>({
-        previousX: 0,
-        previousY: 0,
         previousXVel: 0,
         previousYVel: 0,
         previousMeshX: 0,
@@ -265,78 +260,26 @@ const useMovementMethod = (
         lerpedTargetY: 0,
     })
 
-    const checkForCloserTarget = useCheckForCloserTarget(setTempTarget, isValidTarget)
-    const checkForReachedTarget = useCheckForReachedTarget(setTempTarget)
-
-    const offset = useMemo(() => {
-        return targetUuid === getPlayerUuid() ? 1 : 0.45
-    }, [targetUuid])
-
-    return useCallback((delta: number, targetObject: Object3D, isTempTarget: boolean = false) => {
-
-        const movedXDiff = Math.abs(ref.current.position.x - localStateRef.current.previousMeshX)
-        const movedYDiff = Math.abs(ref.current.position.y - localStateRef.current.previousMeshY)
-
-        localStateRef.current.previousMeshX = ref.current.position.x
-        localStateRef.current.previousMeshY = ref.current.position.y
+    return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance: number = 0) => {
 
         const localState = localStateRef.current
 
-        let targetX = targetObject.position.x
-        let targetY = targetObject.position.y
+        let moveXDiff = targetX - self.position.x
+        let moveYDiff = targetY - self.position.y
 
-        let followAngle = targetObject.rotation.z
-        if (followAngle > PI) {
-            followAngle -= PI_TIMES_TWO
+        if (Math.abs(moveXDiff) < allowedDistance) {
+            moveXDiff = 0
         }
 
-        const followXDir = Math.sin(followAngle)
-        const followYDir = Math.cos(followAngle)
-
-        targetX += followXDir * offset
-        targetY += followYDir * -1 * offset
-
-        const moveXDiff = targetX - ref.current.position.x
-        const moveYDiff = targetY - ref.current.position.y
-
-        const moveAverage = (Math.abs(moveXDiff) + Math.abs(moveYDiff)) / 2
-
-        const moveFactor = numLerp(0.25, 0.75, moveAverage < 1 ? moveAverage : 1)
+        if (Math.abs(moveYDiff) < allowedDistance) {
+            moveYDiff = 0
+        }
 
         let vectorAngle = Math.atan2(moveYDiff, moveXDiff) - radians(90)
-        vectorAngle = lerpRadians(followAngle, vectorAngle, moveFactor)
 
         if (vectorAngle > PI) {
             vectorAngle -= PI_TIMES_TWO
         }
-
-        let prevAngle = ref.current.rotation.z // convert to low equivalent angle
-        if (prevAngle > PI) {
-            prevAngle -= PI_TIMES_TWO
-        }
-
-        let newAngle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
-
-        // newAngle = vectorAngle
-
-        const angleDifference = getRadianAngleDifference(prevAngle, newAngle)
-
-        // todo - account for delta?
-        // if (Math.abs(angleDifference) > 0.1) {
-        //     if (angleDifference > 0) {
-        //         newAngle = prevAngle + 0.1
-        //     } else {
-        //         newAngle = prevAngle - 0.1
-        //     }
-        // }
-        //
-        // if (newAngle > PI) {
-        //     newAngle -= PI_TIMES_TWO
-        // }
-
-        // console.log('angleDifference', angleDifference)
-
-        api.setAngle(newAngle)
 
         const xDir = Math.sin(vectorAngle)
         const yDir = Math.cos(vectorAngle)
@@ -380,18 +323,77 @@ const useMovementMethod = (
         xVel = xVel * 35 * delta
         yVel = yVel * 35 * delta
 
-        // todo - implement maximum
+        const maximumVel = 60 * delta
 
-        vector.set(xVel, yVel)
+        const [finalX, finalY] = limitVector(xVel, yVel, maximumVel)
+
+        vector.set(finalX, finalY)
 
         api.applyForceToCenter(vector)
+        api.setAngle(angle)
 
         localState.previousTargetX = targetX
         localState.previousTargetY = targetY
-        localState.previousX = targetObject.position.x
-        localState.previousY = targetObject.position.y
-        localState.previousXVel = xVel
-        localState.previousYVel = yVel
+        localState.previousXVel = finalX
+        localState.previousYVel = finalY
+
+    }, [api])
+}
+
+const useFollowMethod = (
+    ref: MutableRefObject<Object3D>,
+    api: BodyApi, targetUuid: ValidUUID | null,
+    setTempTarget: UpdateFn,
+    isValidTarget: (id: string) => boolean,
+    tempTarget: TempTarget | null,
+    moveTowards: MoveTowardFn,
+) => {
+
+    const checkForCloserTarget = useCheckForCloserTarget(setTempTarget, isValidTarget)
+    const checkForReachedTarget = useCheckForReachedTarget(setTempTarget)
+
+    const offset = useMemo(() => {
+        return targetUuid === getPlayerUuid() ? 1 : 0.45
+    }, [targetUuid])
+
+    return useCallback((delta: number, targetObject: Object3D, isTempTarget: boolean = false) => {
+
+        let targetX = targetObject.position.x
+        let targetY = targetObject.position.y
+
+        let followAngle = targetObject.rotation.z
+        if (followAngle > PI) {
+            followAngle -= PI_TIMES_TWO
+        }
+
+        const followXDir = Math.sin(followAngle)
+        const followYDir = Math.cos(followAngle)
+
+        targetX += followXDir * offset
+        targetY += followYDir * -1 * offset
+
+        const moveXDiff = targetX - ref.current.position.x
+        const moveYDiff = targetY - ref.current.position.y
+
+        const moveAverage = (Math.abs(moveXDiff) + Math.abs(moveYDiff)) / 2
+
+        const moveFactor = numLerp(0.25, 0.75, moveAverage < 1 ? moveAverage : 1)
+
+        let vectorAngle = Math.atan2(moveYDiff, moveXDiff) - radians(90)
+        vectorAngle = lerpRadians(followAngle, vectorAngle, moveFactor)
+
+        if (vectorAngle > PI) {
+            vectorAngle -= PI_TIMES_TWO
+        }
+
+        let prevAngle = ref.current.rotation.z // convert to low equivalent angle
+        if (prevAngle > PI) {
+            prevAngle -= PI_TIMES_TWO
+        }
+
+        let newAngle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
+
+        moveTowards(delta, ref.current, targetX, targetY, newAngle)
 
         if (isTempTarget && tempTarget) {
             checkForReachedTarget(ref.current, targetObject, tempTarget.order)
@@ -399,22 +401,53 @@ const useMovementMethod = (
             checkForCloserTarget(ref.current, targetX, targetY)
         }
 
-    }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget])
+    }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget, moveTowards])
+}
+
+export const useForageMethod = (self: Object3D, moveTowards: MoveTowardFn) => {
+    return useCallback((delta: number) => {
+
+        const targetX = -2
+        const targetY = -2
+
+        const moveXDiff = targetX - self.position.x
+        const moveYDiff = targetY - self.position.y
+
+        let angle = self.rotation.z
+        let vectorAngle = Math.atan2(moveYDiff, moveXDiff) - radians(90)
+        if (vectorAngle > PI) {
+            vectorAngle -= PI_TIMES_TWO
+        }
+        let prevAngle = angle
+        if (prevAngle > PI) {
+            prevAngle -= PI_TIMES_TWO
+        }
+        angle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
+        moveTowards(delta, self, targetX, targetY, angle, 0.4)
+
+    }, [self, moveTowards])
 }
 
 export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyApi) => {
 
-    const {order} = useDuckling(id)
+    const {order, isFollowingPlayer} = useDuckling(id)
 
     const targetUuid = useDucklingTargetUuid(id, order)
     const [targetObject, refetchTargetObject] = useTargetObject(targetUuid)
     const [tempTarget, setTempTarget, isValidTarget] = useTempTargetObject(order)
-    const movementMethod = useMovementMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget)
+    const moveTowards = useMoveTowards(api)
+    const followMethod = useFollowMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget, moveTowards)
+    const forageMethod = useForageMethod(ref.current, moveTowards)
 
     const onFrame = useCallback((delta: number) => {
 
+        if (!isFollowingPlayer) {
+            forageMethod(delta)
+            return
+        }
+
         if (tempTarget) {
-            return movementMethod(delta, tempTarget.object, true)
+            return followMethod(delta, tempTarget.object, true)
         }
 
         if (!targetObject) {
@@ -424,9 +457,9 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
             return
         }
 
-        movementMethod(delta, targetObject)
+        followMethod(delta, targetObject)
 
-    }, [targetUuid, targetObject, refetchTargetObject, tempTarget])
+    }, [targetUuid, targetObject, refetchTargetObject, tempTarget, forageMethod, followMethod, isFollowingPlayer])
 
     useIntervalFrame(onFrame)
 

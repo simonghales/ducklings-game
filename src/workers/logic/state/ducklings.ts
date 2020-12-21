@@ -2,13 +2,15 @@ import create from "zustand";
 
 export type DucklingState = {
     id: string,
-    order: number,
+    order: number | null,
+    isFollowingPlayer: boolean,
 }
 
-const generateDucklingState = (id: string, order: number): DucklingState => {
+const generateDucklingState = (id: string, order: number | null): DucklingState => {
     return {
         id,
         order,
+        isFollowingPlayer: true,
     }
 }
 
@@ -17,6 +19,7 @@ type DucklingsStateStore = {
         [key: string]: DucklingState,
     },
     updateDucklingsOrder: (id: string, newPosition: number) => void,
+    updateDuckling: (id: string, update: Partial<DucklingState>) => void,
 }
 
 export const useDucklingsState = create<DucklingsStateStore>(set => ({
@@ -27,6 +30,23 @@ export const useDucklingsState = create<DucklingsStateStore>(set => ({
        'D': generateDucklingState('D', 3),
        'E': generateDucklingState('E', 4),
    },
+    updateDuckling: (id: string, update: Partial<DucklingState>) => {
+       return set(state => {
+           const ducklings = state.ducklings
+           const duckling = ducklings[id]
+           if (!duckling) throw new Error(`No duckling found for ${id}`)
+           const newDucklingState =  {
+               ...duckling,
+               ...update,
+           }
+           ducklings[id] = newDucklingState
+           return {
+               ducklings: {
+                   ...ducklings,
+               }
+           }
+       })
+    },
     updateDucklingsOrder: (id, newPosition) => {
        return set(state => {
 
@@ -56,10 +76,11 @@ export const useDucklingsState = create<DucklingsStateStore>(set => ({
     }
 }))
 
-const {updateDucklingsOrder} = useDucklingsState.getState()
+const {updateDucklingsOrder, updateDuckling} = useDucklingsState.getState()
 
 export {
     updateDucklingsOrder,
+    updateDuckling,
 }
 
 export const useDucklings = (): DucklingState[] => {
@@ -76,18 +97,39 @@ export const useDucklingState = (id: string): DucklingState => {
 }
 
 export const sortDucklings = (ducklingA: DucklingState, ducklingB: DucklingState): number => {
-    return ducklingA.order - ducklingB.order
+    return (ducklingA.order ?? 999) - (ducklingB.order ?? 999)
+}
+
+export const filterDucklings = (duckling: DucklingState) => {
+    return duckling.isFollowingPlayer
 }
 
 export const getSortedDucklings = (ducklings?: DucklingState[]): DucklingState[] => {
     if (ducklings) {
-        return ducklings.sort(sortDucklings)
+        return ducklings.filter(filterDucklings).sort(sortDucklings)
     }
-    return Object.values(useDucklingsState.getState().ducklings).sort(sortDucklings)
+    return Object.values(useDucklingsState.getState().ducklings).filter(filterDucklings).sort(sortDucklings)
 }
 
+export const getNumberOfFollowingDucklings = (): number => {
+    return getSortedDucklings().length
+}
 
 export const useSortedDucklings = (): DucklingState[] => {
     const ducklings = useDucklings()
-    return ducklings.sort(sortDucklings)
+    return ducklings.filter(filterDucklings).sort(sortDucklings)
+}
+
+export const stopFollowingPlayer = (id: string) => {
+    updateDuckling(id, {
+        order: null,
+        isFollowingPlayer: false,
+    })
+}
+
+export const startFollowingPlayer = (id: string) => {
+    updateDuckling(id, {
+        order: getNumberOfFollowingDucklings(),
+        isFollowingPlayer: true,
+    })
 }

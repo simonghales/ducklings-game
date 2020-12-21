@@ -4,6 +4,8 @@ import {useRef} from "react";
 import {Object3D} from "three";
 import {getPlayerUuid} from "../../../../shared/uuids";
 import {useStoreMesh} from "../../state/meshes";
+import {useCollisionHandling} from "./hooks/useCollisionHandling";
+import RangeHandlers from "./components/RangeHandlers/RangeHandlers";
 
 const Player: React.FC = () => {
 
@@ -11,8 +13,13 @@ const Player: React.FC = () => {
     const uuid = getPlayerUuid()
     useStoreMesh(uuid, ref.current)
     useSyncBody(uuid, ref)
+    useCollisionHandling(uuid)
 
-    return null
+    return (
+        <>
+            <RangeHandlers/>
+        </>
+    )
 }
 
 export default Player
