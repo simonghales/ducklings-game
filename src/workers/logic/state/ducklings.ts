@@ -119,3 +119,17 @@ export const useSortedDucklings = (): DucklingState[] => {
     const ducklings = useDucklings()
     return ducklings.filter(filterDucklings).sort(sortDucklings)
 }
+
+export const stopFollowingPlayer = (id: string) => {
+    updateDuckling(id, {
+        order: null,
+        isFollowingPlayer: false,
+    })
+}
+
+export const startFollowingPlayer = (id: string) => {
+    updateDuckling(id, {
+        order: getNumberOfFollowingDucklings(),
+        isFollowingPlayer: true,
+    })
+}

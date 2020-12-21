@@ -29,10 +29,10 @@ const useOnDucklingCollide = (id: string) => {
 const useOnPlayerCollide = (id: string) => {
     return useCallback(() => {
 
-        updateDuckling(id, {
-            isFollowingPlayer: true,
-            order: getNumberOfFollowingDucklings(),
-        })
+        // updateDuckling(id, {
+        //     isFollowingPlayer: true,
+        //     order: getNumberOfFollowingDucklings(),
+        // })
 
     }, [id])
 }

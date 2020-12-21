@@ -3,6 +3,7 @@ import {useCallback} from "react";
 import {FixtureType, FixtureUserData} from "../../../../../shared/fixtures";
 import {useCollisionEvents} from "../../../../../physics/components/Physics/hooks";
 import {Fixtures} from "../../../../../components/Game/components/Player/hooks/useCollisionsHandling";
+import {addInRange, RangeType, removeInRange} from "../state/area";
 
 const handleFixtureResponse = (
     fixtureIndex: number,
@@ -45,30 +46,30 @@ const handleFixtureResponse = (
 
 export const useCollisionHandling = (uuid: ValidUUID) => {
 
-    const onCollisionStart = useCallback(({fixtureType}: FixtureUserData, fixtureIndex: number) => {
+    const onCollisionStart = useCallback(({fixtureType, uuid}: FixtureUserData, fixtureIndex: number) => {
         switch (fixtureType) {
             case FixtureType.FOOD_PLANT:
                 handleFixtureResponse(fixtureIndex, {
                     closeCallback: () => {
-                        console.log('om nom nom???')
+                        addInRange(uuid, RangeType.FOOD_PLANT, undefined, true)
                     },
                     mediumCallback: () => {
-                        console.log('in medium distance')
+                        addInRange(uuid, RangeType.FOOD_PLANT, true, undefined)
                     }
                 })
                 break;
         }
     }, [])
 
-    const onCollisionEnd = useCallback(({fixtureType}: FixtureUserData, fixtureIndex: number) => {
+    const onCollisionEnd = useCallback(({fixtureType, uuid}: FixtureUserData, fixtureIndex: number) => {
         switch (fixtureType) {
             case FixtureType.FOOD_PLANT:
                 handleFixtureResponse(fixtureIndex, {
                     closeCallback: () => {
-                        console.log('left close')
+                        removeInRange(uuid, undefined, true)
                     },
                     mediumCallback: () => {
-                        console.log('left medium distance')
+                        removeInRange(uuid, true, undefined)
                     }
                 })
                 break;

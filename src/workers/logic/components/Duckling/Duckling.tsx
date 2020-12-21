@@ -8,6 +8,7 @@ import {getDucklingUuid} from "../../../../shared/uuids";
 import {useStoreMesh} from "../../state/meshes";
 import { DucklingContext } from "./context";
 import {useCollisionHandling} from "./hooks/useCollisionHandling";
+import {useMessages} from "./hooks/useMessages";
 
 const Duckling: React.FC<{
     id: string,
@@ -20,6 +21,7 @@ const Duckling: React.FC<{
     useSyncBody(uuid, ref)
     useCollisionHandling(uuid, id)
     useBrain(id, ref, api)
+    useMessages(id)
 
     useEffect(() => {
 
