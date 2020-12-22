@@ -20,8 +20,6 @@ const RangeElement: React.FC<{
 
     after close activated, wait 500 and set activated
 
-
-
      */
 
     useEffect(() => {

@@ -1,5 +1,7 @@
 import {dynamicBodiesUuids, existingBodies, planckWorld} from "./shared";
 import {handleBeginCollision, handleEndCollision} from "./collisions/collisions";
+import {getPlayerUuid} from "../shared/uuids";
+import {V2} from "../shared/types";
 
 let lastUpdate = 0
 
@@ -10,7 +12,6 @@ export const syncData = (positions: Float32Array, angles: Float32Array) => {
         if (!body) return
         const position = body.getPosition()
         const angle = body.getAngle()
-        const velocity = body.getLinearVelocity()
         positions[2 * index + 0] = position.x
         positions[2 * index + 1] = position.y
         angles[index] = angle
@@ -18,7 +19,7 @@ export const syncData = (positions: Float32Array, angles: Float32Array) => {
 
 }
 
-export const stepWorld = (positions: Float32Array, localPositions: Float32Array, angles: Float32Array, localAngles: Float32Array) => {
+export const stepWorld = (positions: Float32Array, angles: Float32Array) => {
 
     var now = Date.now();
     var delta = !lastUpdate ? 1 / 60 : (now - lastUpdate) / 1000;

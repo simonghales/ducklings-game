@@ -1,13 +1,23 @@
 /* eslint-disable no-restricted-globals */
 
-const selfWorker = self as unknown as Worker
+import {initFluid} from "../../fluid/fluidManager";
+import {V2} from "../../shared/types";
+import {expose} from "comlink";
 
-console.log('this is fluid worker...')
+initFluid()
+
+const selfWorker = self as unknown as Worker
 
 selfWorker.onmessage = (event: MessageEvent) => {
 
-    console.log('message?')
-
 }
 
-export {}
+const exports = {
+    updatePlayerData: (position: V2, velocity: V2) => {
+        // console.log('updatePlayerData')
+    }
+}
+
+export type FluidWorker = typeof exports;
+
+expose(exports);
