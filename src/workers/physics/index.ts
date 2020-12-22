@@ -12,6 +12,7 @@ import {
     unsyncedLogicBodies
 } from "../../physics/shared";
 import {maxNumberOfDynamicPhysicObjects} from "../../physics/components/Physics/data";
+import "./fluids"
 
 const selfWorker = self as unknown as Worker
 

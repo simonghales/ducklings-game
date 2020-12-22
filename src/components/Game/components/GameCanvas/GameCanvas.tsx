@@ -9,6 +9,7 @@ import Physics from "../../../../physics/components/Physics/Physics";
 import Messages from "../../../Messages/Messages";
 import DuckWeed from "../DuckWeed/DuckWeed";
 import Food from "../Food/Food";
+import FoodManager from "../../../../game/food/main/components/FoodManager/FoodManager";
 
 const GameCanvas: React.FC = () => {
     return (
@@ -25,7 +26,7 @@ const GameCanvas: React.FC = () => {
                     <DuckWeed initialPosition={[0.5, 1.75]}/>
                     <DuckWeed initialPosition={[0.5, 1.5]}/>
                     <DuckWeed initialPosition={[1.75, 0.75]}/>
-                    <Food/>
+                    <FoodManager/>
                     <Ducklings/>
                 </Physics>
             </Messages>

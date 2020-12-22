@@ -8,6 +8,7 @@ export enum DucklingMessageType {
 export type DucklingFoodSourceMessage = {
     type: DucklingMessageType,
     data: {
+        id: string,
         inRange: boolean,
     }
 }

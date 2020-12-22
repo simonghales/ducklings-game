@@ -1,23 +1,17 @@
-import {BodyApi} from "../../../../../physics/components/Physics/hooks";
-import {MutableRefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
-import {useIntervalFrame} from "../../../../../shared/hooks/frame";
 import {Object3D} from "three";
-import {getStoredMesh, useTargetObject} from "../../../state/meshes";
-import {ValidUUID} from "../../../../../utils/ids";
-import {
-    getSortedDucklings,
-    updateDucklingsOrder,
-    useSortedDucklings
-} from "../../../state/ducklings";
-import {getDucklingUuid, getPlayerUuid} from "../../../../../shared/uuids";
-import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../utils/numbers";
-import {getRadianAngleDifference, radians} from "../../../../../utils/angles";
+import {ValidUUID} from "../../../../../../utils/ids";
+import {getSortedDucklings, updateDucklingsOrder, useSortedDucklings} from "../../../../state/ducklings";
+import {MutableRefObject, useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {getDucklingUuid, getFoodUuid, getPlayerUuid} from "../../../../../../shared/uuids";
+import {radians} from "../../../../../../utils/angles";
+import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../../utils/numbers";
+import {BodyApi} from "../../../../../../physics/components/Physics/hooks";
+import {limitVector} from "../../../../../../utils/vectors";
+import {useMounted} from "../../../../../../shared/hooks/mounted";
+import {useDucklingId} from "../../context";
+import {useDuckling} from "../useDuckling";
+import {getStoredMesh} from "../../../../state/meshes";
 import {Vec2} from "planck-js";
-import {useDuckling} from "./useDuckling";
-import {useDucklingId} from "../context";
-import {useMounted} from "../../../../../shared/hooks/mounted";
-import {proxy} from "valtio";
-import {getVectorLength, limitVector, normalizeVector} from "../../../../../utils/vectors";
 
 const vector = Vec2(0, 0)
 
@@ -33,7 +27,7 @@ type TempTarget = {
 
 type UpdateFn = (update: TempTarget | null) => void
 
-const useTempTargetObject = (order: number | null): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
+export const useTempTargetObject = (order: number | null): [TempTarget | null, UpdateFn, (id: string) => boolean] => {
 
     const [targetCooldown, setTargetCooldown] = useState('')
     const [tempTarget, setTempTargetObject] = useState<TempTarget | null>(null)
@@ -133,7 +127,6 @@ const useCheckForReachedTarget = (setTempTarget: UpdateFn) => {
 
 }
 
-
 const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: string) => boolean) => {
 
     const mounted = useMounted()
@@ -201,7 +194,7 @@ const useCheckForCloserTarget = (setTempTarget: UpdateFn, isValidTarget: (id: st
 
 }
 
-const useDucklingTargetUuid = (id: string, order: number | null): ValidUUID | null => {
+export const useDucklingTargetUuid = (id: string, order: number | null): ValidUUID | null => {
 
     const sortedDucklings = useSortedDucklings()
 
@@ -226,9 +219,9 @@ const useDucklingTargetUuid = (id: string, order: number | null): ValidUUID | nu
     return targetUuid
 }
 
-type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance?: number) => void
+type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance?: number, speedLimit?: number) => void
 
-const useMoveTowards = (api: BodyApi) => {
+export const useMoveTowards = (api: BodyApi) => {
 
     const localStateRef = useRef<{
         previousMeshX: number,
@@ -260,7 +253,7 @@ const useMoveTowards = (api: BodyApi) => {
         lerpedTargetY: 0,
     })
 
-    return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance: number = 0) => {
+    return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance: number = 0, speedLimit = 60) => {
 
         const localState = localStateRef.current
 
@@ -323,7 +316,7 @@ const useMoveTowards = (api: BodyApi) => {
         xVel = xVel * 35 * delta
         yVel = yVel * 35 * delta
 
-        const maximumVel = 60 * delta
+        const maximumVel = speedLimit * delta
 
         const [finalX, finalY] = limitVector(xVel, yVel, maximumVel)
 
@@ -340,7 +333,7 @@ const useMoveTowards = (api: BodyApi) => {
     }, [api])
 }
 
-const useFollowMethod = (
+export const useFollowMethod = (
     ref: MutableRefObject<Object3D>,
     api: BodyApi, targetUuid: ValidUUID | null,
     setTempTarget: UpdateFn,
@@ -404,11 +397,43 @@ const useFollowMethod = (
     }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget, moveTowards])
 }
 
-export const useForageMethod = (self: Object3D, moveTowards: MoveTowardFn) => {
+export const useForageMethod = (self: Object3D, targetFoodSources: string[], moveTowards: MoveTowardFn) => {
+
+    const [justBeganForaging, setJustBeganForaging] = useState(false)
+    const [isHurrying, setIsHurrying] = useState(false)
+    const firstFoodSource = targetFoodSources.length > 0 ? targetFoodSources[0] : null
+
+    const speedLimit = isHurrying ? 60 : 40
+
+    const targetObject = useMemo(() => {
+
+        if (firstFoodSource) {
+
+            const uuid = getFoodUuid(firstFoodSource)
+
+            return getStoredMesh(uuid)
+
+        } else {
+            return null
+        }
+
+    }, [firstFoodSource])
+
+    useEffect(() => {
+        setIsHurrying(false)
+        setJustBeganForaging(!!targetObject)
+    }, [targetObject, setJustBeganForaging, setIsHurrying])
+
+    useEffect(() => {
+        setIsHurrying(justBeganForaging)
+    }, [justBeganForaging, setIsHurrying])
+
     return useCallback((delta: number) => {
 
-        const targetX = -2
-        const targetY = -2
+        if (!targetObject) return
+
+        const targetX = targetObject.position.x
+        const targetY = targetObject.position.y
 
         const moveXDiff = targetX - self.position.x
         const moveYDiff = targetY - self.position.y
@@ -423,44 +448,7 @@ export const useForageMethod = (self: Object3D, moveTowards: MoveTowardFn) => {
             prevAngle -= PI_TIMES_TWO
         }
         angle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
-        moveTowards(delta, self, targetX, targetY, angle, 0.4)
+        moveTowards(delta, self, targetX, targetY, angle, 0.4, speedLimit)
 
-    }, [self, moveTowards])
-}
-
-export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyApi) => {
-
-    const {order, isFollowingPlayer} = useDuckling(id)
-
-    const targetUuid = useDucklingTargetUuid(id, order)
-    const [targetObject, refetchTargetObject] = useTargetObject(targetUuid)
-    const [tempTarget, setTempTarget, isValidTarget] = useTempTargetObject(order)
-    const moveTowards = useMoveTowards(api)
-    const followMethod = useFollowMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget, moveTowards)
-    const forageMethod = useForageMethod(ref.current, moveTowards)
-
-    const onFrame = useCallback((delta: number) => {
-
-        if (!isFollowingPlayer) {
-            forageMethod(delta)
-            return
-        }
-
-        if (tempTarget) {
-            return followMethod(delta, tempTarget.object, true)
-        }
-
-        if (!targetObject) {
-            if (targetUuid != null) {
-                refetchTargetObject()
-            }
-            return
-        }
-
-        followMethod(delta, targetObject)
-
-    }, [targetUuid, targetObject, refetchTargetObject, tempTarget, forageMethod, followMethod, isFollowingPlayer])
-
-    useIntervalFrame(onFrame)
-
+    }, [self, moveTowards, targetObject, speedLimit])
 }

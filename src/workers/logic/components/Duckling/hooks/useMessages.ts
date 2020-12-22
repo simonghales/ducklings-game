@@ -5,8 +5,12 @@ import {
     subscribeToDucklingMessages
 } from "../../../../../messaging/ducklings";
 import {startFollowingPlayer, stopFollowingPlayer} from "../../../state/ducklings";
+import {useDucklingLocalState} from "../context";
+import {addFoodSourceToDucklingRange, removeFoodSourceFromDucklingRange} from "../state";
 
 export const useMessages = (id: string) => {
+
+    const localState = useDucklingLocalState()
 
     useEffect(() => {
 
@@ -16,9 +20,9 @@ export const useMessages = (id: string) => {
                 case DucklingMessageType.FOOD_SOURCE:
                     const foodData = data.data as unknown as DucklingFoodSourceMessage['data']
                     if (foodData.inRange) {
-                        stopFollowingPlayer(id)
+                        addFoodSourceToDucklingRange(localState, foodData.id)
                     } else {
-                        startFollowingPlayer(id)
+                        removeFoodSourceFromDucklingRange(localState, foodData.id)
                     }
                     break;
             }
@@ -30,6 +34,6 @@ export const useMessages = (id: string) => {
             unsubscribe()
         }
 
-    }, [id])
+    }, [id, localState])
 
 }

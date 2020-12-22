@@ -7,19 +7,20 @@ export enum RangeType {
 
 type RangeElementsState = {
     range: {
-        [id: string]: {
+        [uuid: string]: {
+            id: string,
             rangeType: RangeType,
             short: boolean,
             medium: boolean,
         },
     },
-    addInRange: (uuid: ValidUUID, rangeType: RangeType, medium?: boolean, short?: boolean) => void,
+    addInRange: (uuid: ValidUUID, id: string, rangeType: RangeType, medium?: boolean, short?: boolean) => void,
     removeInRange: (uuid: ValidUUID, medium?: boolean, short?: boolean) => void,
 }
 
 export const useRangeElements = create<RangeElementsState>(set => ({
     range: {},
-    addInRange: (uuid, rangeType, medium, short) => {
+    addInRange: (uuid, id, rangeType, medium, short) => {
         return set(state => {
             const {range} = state
             if (range[uuid]) {
@@ -31,12 +32,14 @@ export const useRangeElements = create<RangeElementsState>(set => ({
             } else {
                 if (short) {
                     range[uuid] = {
+                        id,
                         rangeType,
                         short: true,
                         medium: false,
                     }
                 } else if (medium) {
                     range[uuid] = {
+                        id,
                         rangeType,
                         short: false,
                         medium: true,

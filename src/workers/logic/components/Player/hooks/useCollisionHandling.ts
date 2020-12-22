@@ -46,15 +46,15 @@ const handleFixtureResponse = (
 
 export const useCollisionHandling = (uuid: ValidUUID) => {
 
-    const onCollisionStart = useCallback(({fixtureType, uuid}: FixtureUserData, fixtureIndex: number) => {
+    const onCollisionStart = useCallback(({fixtureType, id, uuid}: FixtureUserData, fixtureIndex: number) => {
         switch (fixtureType) {
             case FixtureType.FOOD_PLANT:
                 handleFixtureResponse(fixtureIndex, {
                     closeCallback: () => {
-                        addInRange(uuid, RangeType.FOOD_PLANT, undefined, true)
+                        addInRange(uuid, id, RangeType.FOOD_PLANT, undefined, true)
                     },
                     mediumCallback: () => {
-                        addInRange(uuid, RangeType.FOOD_PLANT, true, undefined)
+                        addInRange(uuid, id, RangeType.FOOD_PLANT, true, undefined)
                     }
                 })
                 break;

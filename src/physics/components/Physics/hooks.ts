@@ -127,6 +127,62 @@ export const useCollisionEvents = (
 
 }
 
+export const useBodyRaw = (propsFn: () => AddBodyDef, {
+    applyAngle = false,
+    cacheKey,
+    uuid: passedUUID,
+    fwdRef,
+    listenForCollisions = false,
+}: {
+    listenForCollisions?: boolean,
+    applyAngle?: boolean,
+    cacheKey?: PhysicsCacheKeys,
+    uuid?: string | number,
+    fwdRef?: MutableRefObject<Object3D>,
+}): [any, BodyApi, string | number] => {
+    const localRef = useRef<Object3D>((null as unknown) as Object3D)
+    const ref = fwdRef ? fwdRef : localRef
+    const [uuid] = useState(() => {
+        if (passedUUID) return passedUUID
+        if (!ref.current) {
+            ref.current = new Object3D()
+        }
+        return ref.current.uuid
+    })
+    const [isDynamic] = useState(() => {
+        const props = propsFn()
+        return props.type !== BodyType.static
+    })
+    const {
+        workerAddBody,
+        workerRemoveBody,
+    } = usePhysicsProvider()
+
+    useLayoutEffect(() => {
+
+        const props = propsFn()
+
+        ref.current.position.x = props.position?.x || 0
+        ref.current.position.y = props.position?.y || 0
+
+        workerAddBody({
+            uuid,
+            listenForCollisions,
+            cacheKey,
+            ...props,
+        })
+
+        return () => {
+            workerRemoveBody({uuid, cacheKey})
+        }
+
+    }, [])
+
+    const api = useBodyApi(uuid)
+
+    return [ref, api, uuid]
+}
+
 export const useBody = (propsFn: () => AddBodyDef, {
     applyAngle = false,
     cacheKey,

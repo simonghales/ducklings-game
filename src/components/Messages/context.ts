@@ -11,3 +11,7 @@ export const MessagesContext = createContext(null as unknown as MessagesContextS
 export const useMessagesContext = () => {
     return useContext(MessagesContext)
 }
+
+export const useSubscribeToMessage = () => {
+    return useMessagesContext().subscribeToMessage
+}
