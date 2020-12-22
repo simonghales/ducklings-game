@@ -1,5 +1,22 @@
 import create from "zustand";
 import {ValidUUID} from "../../../../../utils/ids";
+import {proxy} from "valtio";
+
+export const displacementRange = proxy<{
+    range: {
+        [id: string]: ValidUUID,
+    }
+}>({
+    range: {},
+})
+
+export const addToDisplacementRange = (uuid: ValidUUID) => {
+    displacementRange.range[uuid] = uuid
+}
+
+export const removeFromDisplacementRange = (uuid: ValidUUID) => {
+    delete displacementRange.range[uuid]
+}
 
 export enum RangeType {
     FOOD_PLANT

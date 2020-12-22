@@ -23,6 +23,9 @@ const DuckWeed: React.FC<{
             radius: 0.02,
             fixtureOptions: {
                 density: 0.3,
+                userData: {
+                    reactToWater: true,
+                }
             },
         }],
     }), {
