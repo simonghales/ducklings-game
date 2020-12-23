@@ -11,3 +11,7 @@ export const getPlayerUuid = (): ValidUUID => {
 export const getDucklingUuid = (id: string): ValidUUID => {
     return `duckling-${id}`
 }
+
+export const getPlantUuid = (id: string): ValidUUID => {
+    return `plant-${id}`
+}

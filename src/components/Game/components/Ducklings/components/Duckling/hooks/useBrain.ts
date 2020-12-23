@@ -10,14 +10,11 @@ import {ducklingTargets} from "../../../state/targets";
 import {getClosestDuckRefKey, getSortedDucklings} from "../../../shared";
 import {useDucklingsStore} from "../../../../../../../global/state/ducklings";
 import {getDucklingTargetRefKey} from "../Duckling";
+import {calculateCheapDistance} from "../../../../../../../utils/vectors";
 
 let tick = 0
 
 const vector = Vec2(0, 0)
-
-const calculateCheapDistance = (x: number, x2: number, y: number, y2: number): number => {
-    return Math.pow(Math.abs(x - x2), 2) + Math.pow(Math.abs(y - y2), 2)
-}
 
 let odd = false
 

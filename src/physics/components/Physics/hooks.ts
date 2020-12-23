@@ -11,12 +11,12 @@ import {ValidUUID} from "../../../utils/ids";
 import {useCollisionsProviderContext} from "../CollisionsProvider/context";
 
 export type BodyApi = {
-    applyForceToCenter: (vec: Vec2) => void,
-    applyLinearImpulse: (vec: Vec2, pos: Vec2) => void,
-    setPosition: (vec: Vec2) => void,
-    setLinearVelocity: (vec: Vec2) => void,
-    setAngle: (angle: number) => void,
-    updateBody: (data: UpdateBodyData) => void,
+    applyForceToCenter: (vec: Vec2, uuid?: ValidUUID) => void,
+    applyLinearImpulse: (vec: Vec2, pos: Vec2, uuid?: ValidUUID) => void,
+    setPosition: (vec: Vec2, uuid?: ValidUUID) => void,
+    setLinearVelocity: (vec: Vec2, uuid?: ValidUUID) => void,
+    setAngle: (angle: number, uuid?: ValidUUID) => void,
+    updateBody: (data: UpdateBodyData, uuid?: ValidUUID) => void,
 }
 
 export const useIntervalBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID, isDynamic: boolean, applyAngle: boolean = true) => {
@@ -61,7 +61,11 @@ export const useBodySync = (ref: MutableRefObject<Object3D>, uuid: ValidUUID, is
 
 }
 
-export const useBodyApi = (uuid: ValidUUID): BodyApi => {
+export const useMultipleBodyApi = () => {
+
+}
+
+export const useBodyApi = (passedUuid: ValidUUID): BodyApi => {
 
     const {
         workerSetBody,
@@ -71,26 +75,26 @@ export const useBodyApi = (uuid: ValidUUID): BodyApi => {
     const api = useMemo<BodyApi>(() => {
 
         return  {
-            applyForceToCenter: (vec) => {
-                workerSetBody({uuid, method: 'applyForceToCenter', methodParams: [vec, true]})
+            applyForceToCenter: (vec, uuid) => {
+                workerSetBody({uuid: uuid ?? passedUuid, method: 'applyForceToCenter', methodParams: [vec, true]})
             },
-            applyLinearImpulse: (vec, pos) => {
-                workerSetBody({uuid, method: 'applyLinearImpulse', methodParams: [vec, pos, true]})
+            applyLinearImpulse: (vec, pos, uuid) => {
+                workerSetBody({uuid: uuid ?? passedUuid, method: 'applyLinearImpulse', methodParams: [vec, pos, true]})
             },
-            setPosition: (vec) => {
-                workerSetBody({uuid, method: 'setPosition', methodParams: [vec]})
+            setPosition: (vec, uuid) => {
+                workerSetBody({uuid: uuid ?? passedUuid, method: 'setPosition', methodParams: [vec]})
             },
-            setLinearVelocity: (vec) => {
-                workerSetBody({uuid, method: 'setLinearVelocity', methodParams: [vec]})
+            setLinearVelocity: (vec, uuid) => {
+                workerSetBody({uuid: uuid ?? passedUuid, method: 'setLinearVelocity', methodParams: [vec]})
             },
-            updateBody: (data: UpdateBodyData) => {
-                workerUpdateBody({uuid, data})
+            updateBody: (data: UpdateBodyData, uuid) => {
+                workerUpdateBody({uuid: uuid ?? passedUuid, data})
             },
-            setAngle: (angle: number) => {
-                workerSetBody({uuid, method: 'setAngle', methodParams: [angle]})
+            setAngle: (angle: number, uuid) => {
+                workerSetBody({uuid: uuid ?? passedUuid, method: 'setAngle', methodParams: [angle]})
             }
         }
-    }, [uuid])
+    }, [passedUuid])
 
     return api
 

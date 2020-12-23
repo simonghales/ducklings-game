@@ -15,19 +15,21 @@
 convert: [1,2] to something else..
 
  */
-export const getVectorLength = (x: number, y: number): number => {
+import {calculateAngle} from "./angles";
+
+export const getVectorMagnitude = (x: number, y: number): number => {
     return Math.sqrt(x * x + y * y)
 }
 
 export const normalizeVector = (x: number, y: number, length?: number) => {
     if (!length) {
-        length = getVectorLength(x, y)
+        length = getVectorMagnitude(x, y)
     }
     return [x / length, y / length]
 }
 
 export const limitVector = (x: number, y: number, maximum: number): [number, number] => {
-    const magnitude = getVectorLength(x, y)
+    const magnitude = getVectorMagnitude(x, y)
 
     if (magnitude > maximum) {
 
@@ -37,4 +39,18 @@ export const limitVector = (x: number, y: number, maximum: number): [number, num
 
     }
     return [x, y]
+}
+
+export const calculateCheapDistance = (x: number, x2: number, y: number, y2: number): number => {
+    return Math.pow(Math.abs(x - x2), 2) + Math.pow(Math.abs(y - y2), 2)
+}
+
+export const calcVector = (x1: number, x2: number, y1: number, y2: number): [number, number] => {
+
+    const angle = calculateAngle(x1, x2, y1, y2)
+    const xVector = Math.cos(angle)
+    const yVector = Math.sin(angle)
+
+    return [xVector, yVector]
+
 }

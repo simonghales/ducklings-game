@@ -5,6 +5,7 @@ import {playerInputsState} from "../Player/state/inputs";
 import {playerState} from "../../../../global/state/player";
 import {Simulate} from "react-dom/test-utils";
 import {numLerp} from "../../../../utils/numbers";
+import {calcVector} from "../../../../utils/vectors";
 
 const StyledContainer = styled.div`
     width: 100%;
@@ -24,16 +25,6 @@ const getClientXY = (event: any): [number, number] | null => {
             return [event.targetTouches[0].clientX, event.targetTouches[0].clientY]
     }
     return null
-}
-
-const calcVector = ([x, y]: [number, number], center: [number, number]): [number, number] => {
-
-    const angle = Math.atan2((x - center[0]), (y - center[1]))
-    const xVector = Math.cos(angle)
-    const yVector = Math.sin(angle)
-
-    return [xVector, yVector]
-
 }
 
 const localState = {
@@ -56,7 +47,7 @@ const Inputs: React.FC = ({children}) => {
         if (!position) return
         localState.referenceX = playerState.screenPosX
         localState.referenceY = playerState.screenPosY
-        const vector = calcVector(position, [localState.referenceX, localState.referenceY])
+        const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
         playerInputsState.yVel = vector[0] * -1
         playerInputsState.xVel = vector[1]
         playerInputsState.active = true
@@ -66,7 +57,7 @@ const Inputs: React.FC = ({children}) => {
         if (!playerInputsState.active) return
         const position = getClientXY(event)
         if (!position) return
-        const vector = calcVector(position, [localState.referenceX, localState.referenceY])
+        const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
         playerInputsState.yVel = vector[0] * -1
         playerInputsState.xVel = vector[1]
         playerInputsState.active = false
@@ -78,7 +69,7 @@ const Inputs: React.FC = ({children}) => {
         if (!position) return
         localState.referenceX = numLerp(playerState.screenPosX, localState.referenceX, 0.5)
         localState.referenceY = numLerp(playerState.screenPosY, localState.referenceY, 0.5)
-        const vector = calcVector(position, [localState.referenceX, localState.referenceY])
+        const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
         playerInputsState.yVel = vector[0] * -1
         playerInputsState.xVel = vector[1]
         // todo - calculate distance / threshold...

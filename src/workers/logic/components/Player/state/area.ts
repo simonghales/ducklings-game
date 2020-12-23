@@ -1,6 +1,6 @@
 import create from "zustand";
 import {ValidUUID} from "../../../../../utils/ids";
-import {proxy} from "valtio";
+import {proxy, useProxy} from "valtio";
 
 export const displacementRange = proxy<{
     range: {
@@ -16,6 +16,10 @@ export const addToDisplacementRange = (uuid: ValidUUID) => {
 
 export const removeFromDisplacementRange = (uuid: ValidUUID) => {
     delete displacementRange.range[uuid]
+}
+
+export const useDisplacementRange = (): string[] => {
+    return Object.keys(useProxy(displacementRange).range)
 }
 
 export enum RangeType {
