@@ -1,7 +1,7 @@
 import {ValidUUID} from "../utils/ids";
 
-export const getFoodUuid = (): ValidUUID => {
-    return `food`
+export const getFoodUuid = (id: string): ValidUUID => {
+    return `food-${id}`
 }
 
 export const getPlayerUuid = (): ValidUUID => {
@@ -10,4 +10,8 @@ export const getPlayerUuid = (): ValidUUID => {
 
 export const getDucklingUuid = (id: string): ValidUUID => {
     return `duckling-${id}`
+}
+
+export const getPlantUuid = (id: string): ValidUUID => {
+    return `plant-${id}`
 }

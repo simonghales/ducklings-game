@@ -52,6 +52,17 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
                     userData: {
                     }
                 },
+            },
+            {
+                shape: BodyShape.box,
+                hx: 2.5,
+                hy: 2,
+                center: [0, 0.25],
+                fixtureOptions: {
+                    isSensor: true,
+                    userData: {
+                    }
+                }
             }
         ],
     }), {

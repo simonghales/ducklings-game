@@ -17,6 +17,7 @@ import CollisionsProvider from "../../../../physics/components/CollisionsProvide
 import {useCollisionsProviderContext} from "../../../../physics/components/CollisionsProvider/context";
 import WorkerCommunication from "../WorkerCommunication/WorkerCommunication";
 import {MessageData} from "../../../../shared/messaging/types";
+import PondScene from "../../../../logic/scenes/PondScene/PondScene";
 
 export const workerStorage: {
     worker: Worker | null,
@@ -159,6 +160,7 @@ const LogicApp: React.FC = () => {
             <PhysicsProvider worker={worker} buffers={buffers}>
                 <Player/>
                 <Ducklings/>
+                <PondScene/>
             </PhysicsProvider>
         </LogicAppContext.Provider>
     )

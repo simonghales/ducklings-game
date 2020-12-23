@@ -12,6 +12,7 @@ import {
     unsyncedLogicBodies
 } from "../../physics/shared";
 import {maxNumberOfDynamicPhysicObjects} from "../../physics/components/Physics/data";
+// import {fluidWorkerApi} from "./fluids";
 
 const selfWorker = self as unknown as Worker
 
@@ -48,7 +49,7 @@ const logicFrame = (positions: Float32Array, angles: Float32Array) => {
 
 const step = (positions: Float32Array, angles: Float32Array) => {
 
-    stepWorld(positions, localPositions, angles, localAngles)
+    stepWorld(positions, angles)
 
     const data: any = {
         type: WorkerOwnerMessageType.FRAME,

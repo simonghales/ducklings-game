@@ -4,14 +4,16 @@ import {Cylinder} from "@react-three/drei";
 import {useBody} from "../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../physics/bodies";
 import {Vec2} from "planck-js";
+import {getPlantUuid} from "../../../../shared/uuids";
 
 const radius = 0.3
 
 const color = '#355d29'
 
 const DuckWeed: React.FC<{
+    id: string,
     initialPosition: [number, number]
-}> = ({initialPosition}) => {
+}> = ({id, initialPosition}) => {
 
     const [ref] = useBody(() => ({
         type: BodyType.dynamic,
@@ -23,10 +25,14 @@ const DuckWeed: React.FC<{
             radius: 0.02,
             fixtureOptions: {
                 density: 0.3,
+                userData: {
+                    reactToWater: true,
+                }
             },
         }],
     }), {
         applyAngle: true,
+        uuid: getPlantUuid(id)
     })
 
     return (

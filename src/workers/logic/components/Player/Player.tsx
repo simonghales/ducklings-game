@@ -6,6 +6,7 @@ import {getPlayerUuid} from "../../../../shared/uuids";
 import {useStoreMesh} from "../../state/meshes";
 import {useCollisionHandling} from "./hooks/useCollisionHandling";
 import RangeHandlers from "./components/RangeHandlers/RangeHandlers";
+import LgDisplacementRange from "../../../../logic/components/LgDisplacementRange/LgDisplacementRange";
 
 const Player: React.FC = () => {
 
@@ -18,6 +19,7 @@ const Player: React.FC = () => {
     return (
         <>
             <RangeHandlers/>
+            <LgDisplacementRange/>
         </>
     )
 }

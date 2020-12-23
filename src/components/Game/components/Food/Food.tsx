@@ -6,34 +6,18 @@ import {BodyShape, BodyType} from "../../../../physics/bodies";
 import {Vec2} from "planck-js";
 import {getFoodUuid} from "../../../../shared/uuids";
 import {FixtureType} from "../../../../shared/fixtures";
+import {FoodSourceData} from "../../../../game/food/main/data";
 
-const radius = 0.2
+export const radius = 0.2
 
 const color = '#48792a'
 
-const Food: React.FC = () => {
-
-    const uuid = getFoodUuid()
-
-    const [ref] = useBody(() => ({
-        type: BodyType.static,
-        position: Vec2(-2, -2),
-        fixtures: [{
-            shape: BodyShape.circle,
-            radius,
-            fixtureOptions: {
-                isSensor: true,
-                userData: {
-                    fixtureType: FixtureType.FOOD_PLANT,
-                }
-            },
-        }],
-    }), {
-        uuid,
-    })
-
+const Food: React.FC<{
+    data: FoodSourceData,
+}> = ({data}) => {
+    const {id, position} = data
     return (
-        <group ref={ref}>
+        <group position={[position[0], position[1], 0]}>
             <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
                 <meshBasicMaterial color={color} transparent opacity={1} />
             </Cylinder>

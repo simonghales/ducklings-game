@@ -10,6 +10,7 @@ export enum Fixtures {
     LARGE_SENSOR,
     MEDIUM_SENSOR,
     SMALL_SENSOR,
+    DISPLACEMENT_SENSOR,
 }
 
 export const useCollisionsHandling = () => {

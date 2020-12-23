@@ -10438,6 +10438,11 @@ stackframe@^1.1.1:
   resolved "https://registry.yarnpkg.com/stackframe/-/stackframe-1.2.0.tgz#52429492d63c62eb989804c11552e3d22e779303"
   integrity sha512-GrdeshiRmS1YLMYgzF16olf2jJ/IzxXY9lhKOskuVziubpTYcYqyOwYeJKzQkwy7uN0fYSsbsC4RQaXf9LCrYA==
 
+stam-stable-fluids@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/stam-stable-fluids/-/stam-stable-fluids-1.0.3.tgz#172e2e062d7d7d68cefd4ed67d714af2fab74dd8"
+  integrity sha512-kpqLs1AhQxxqDqMDpGuRz3uE+G031K7V8yHE/ZGmfXOHkjqbICeUWA45GgQs5DWvsIItwt6Apwi7xaPUK8k4lw==
+
 static-extend@^0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/static-extend/-/static-extend-0.1.2.tgz#60809c39cbff55337226fd5e0b520f341f1fb5c6"

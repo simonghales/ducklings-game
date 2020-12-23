@@ -37,7 +37,9 @@ export const useTargetObject = (uuid: ValidUUID | null): [Object3D | null, () =>
     const [targetObject, setTargetObject] = useState(() => uuid ? getStoredMesh(uuid) : null)
 
     const fetch = useCallback(() => {
-        setTargetObject(uuid ? getStoredMesh(uuid) : null)
+        const object = uuid ? getStoredMesh(uuid) : null
+        setTargetObject(object)
+        return object
     }, [uuid])
 
     useEffect(() => {

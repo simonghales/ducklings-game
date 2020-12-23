@@ -16,6 +16,7 @@ export const usePhysics = (id: string, ref: MutableRefObject<Object3D>) => {
             fixtureOptions: {
                 density: 2,
                 userData: {
+                    reactToWater: true,
                     fixtureType: FixtureType.DUCKLING,
                     ducklingId: id,
                 }

@@ -3,7 +3,7 @@ import {useCallback} from "react";
 import {FixtureType, FixtureUserData} from "../../../../../shared/fixtures";
 import {useCollisionEvents} from "../../../../../physics/components/Physics/hooks";
 import {Fixtures} from "../../../../../components/Game/components/Player/hooks/useCollisionsHandling";
-import {addInRange, RangeType, removeInRange} from "../state/area";
+import {addInRange, addToDisplacementRange, RangeType, removeFromDisplacementRange, removeInRange} from "../state/area";
 
 const handleFixtureResponse = (
     fixtureIndex: number,
@@ -11,7 +11,8 @@ const handleFixtureResponse = (
         largeCallback?: () => void,
         mediumCallback?: () => void,
         closeCallback?: () => void,
-        physicalCallback?: () => void
+        physicalCallback?: () => void,
+        displacementCallback?: () => void,
     } = {}
 ) => {
     const {
@@ -19,6 +20,7 @@ const handleFixtureResponse = (
         mediumCallback,
         closeCallback,
         physicalCallback,
+        displacementCallback,
     } = callbacks
     switch (fixtureIndex as Fixtures) {
         case Fixtures.BODY:
@@ -41,27 +43,46 @@ const handleFixtureResponse = (
                 closeCallback()
             }
             break;
+        case Fixtures.DISPLACEMENT_SENSOR:
+            if (displacementCallback) {
+                displacementCallback()
+            }
+            break;
     }
 }
 
 export const useCollisionHandling = (uuid: ValidUUID) => {
 
-    const onCollisionStart = useCallback(({fixtureType, uuid}: FixtureUserData, fixtureIndex: number) => {
+    const onCollisionStart = useCallback(({fixtureType, id, uuid, reactToWater}: FixtureUserData, fixtureIndex: number) => {
+        if (reactToWater) {
+            handleFixtureResponse(fixtureIndex, {
+                displacementCallback: () => {
+                    addToDisplacementRange(uuid)
+                }
+            })
+        }
         switch (fixtureType) {
             case FixtureType.FOOD_PLANT:
                 handleFixtureResponse(fixtureIndex, {
                     closeCallback: () => {
-                        addInRange(uuid, RangeType.FOOD_PLANT, undefined, true)
+                        addInRange(uuid, id, RangeType.FOOD_PLANT, undefined, true)
                     },
                     mediumCallback: () => {
-                        addInRange(uuid, RangeType.FOOD_PLANT, true, undefined)
+                        addInRange(uuid, id, RangeType.FOOD_PLANT, true, undefined)
                     }
                 })
                 break;
         }
     }, [])
 
-    const onCollisionEnd = useCallback(({fixtureType, uuid}: FixtureUserData, fixtureIndex: number) => {
+    const onCollisionEnd = useCallback(({fixtureType, uuid, reactToWater}: FixtureUserData, fixtureIndex: number) => {
+        if (reactToWater) {
+            handleFixtureResponse(fixtureIndex, {
+                displacementCallback: () => {
+                    removeFromDisplacementRange(uuid)
+                }
+            })
+        }
         switch (fixtureType) {
             case FixtureType.FOOD_PLANT:
                 handleFixtureResponse(fixtureIndex, {

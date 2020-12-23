@@ -1,14 +1,15 @@
 import * as React from "react"
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Object3D} from "three";
 import {useBodyApi} from "../../../../physics/components/Physics/hooks";
-import {useBrain} from "./hooks/useBrain";
+import {useBrain} from "./hooks/brain/useBrain";
 import {useSyncBody} from "../LogicApp/hooks/useSyncBody";
 import {getDucklingUuid} from "../../../../shared/uuids";
 import {useStoreMesh} from "../../state/meshes";
 import { DucklingContext } from "./context";
 import {useCollisionHandling} from "./hooks/useCollisionHandling";
 import {useMessages} from "./hooks/useMessages";
+import {generateDucklingLocalState} from "./state";
 
 const Duckling: React.FC<{
     id: string,
@@ -38,9 +39,11 @@ const Duckling: React.FC<{
 const DucklingWrapper: React.FC<{
     id: string,
 }> = ({id}) => {
+    const [localState] = useState(() => generateDucklingLocalState())
     return (
         <DucklingContext.Provider value={{
             id,
+            localState,
         }}>
             <Duckling id={id}/>
         </DucklingContext.Provider>
