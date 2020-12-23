@@ -9,6 +9,9 @@ import {Vec2} from "planck-js";
 export const collisionRadius = 8
 export const mediumRadius = 3
 export const closeRadius = 1.5
+export const waterWidth = 3
+export const waterLength = 2.5
+export const waterOffset = 0.25
 
 export const usePhysics = (ref: MutableRefObject<Object3D>) => {
 
@@ -55,9 +58,9 @@ export const usePhysics = (ref: MutableRefObject<Object3D>) => {
             },
             {
                 shape: BodyShape.box,
-                hx: 2.5,
-                hy: 2,
-                center: [0, 0.25],
+                hx: waterWidth,
+                hy: waterLength,
+                center: [0, waterOffset],
                 fixtureOptions: {
                     isSensor: true,
                     userData: {
