@@ -8,6 +8,8 @@ import {useBodyApi} from "../../../physics/components/Physics/hooks";
 
 const force = Vec2(0, 0)
 
+const updateRate = 1000 / 30
+
 const LgDisplacementRange: React.FC = () => {
 
     const bodyApi = useBodyApi('')
@@ -15,6 +17,7 @@ const LgDisplacementRange: React.FC = () => {
     const localStateRef = useRef({
         previousX: 0,
         previousY: 0,
+        lastUpdate: Date.now()
     })
 
     const displacementRangeUuids = useDisplacementRange()
@@ -36,6 +39,10 @@ const LgDisplacementRange: React.FC = () => {
         if (!player) return
 
         const localState = localStateRef.current
+        const now = Date.now()
+        const delta = updateRate / (now - localState.lastUpdate)
+        localState.lastUpdate = now
+
 
         const {
             previousX,
@@ -67,16 +74,12 @@ const LgDisplacementRange: React.FC = () => {
             const objYVel = vector[1]
 
             const cheapDistance = calculateCheapDistance(previousX, objX, previousY, objY)
-            const delay = cheapDistance * 1000 / 25
+            const delay = cheapDistance * 1000 / 25 / delta
 
-            const finalXVel = objXVel * (magnitude / 10 / (cheapDistance / 2))
-            const finalYVel = objYVel * (magnitude / 10 / (cheapDistance / 2))
+            const finalXVel = objXVel * (magnitude / (cheapDistance / 2)) * delta
+            const finalYVel = objYVel * (magnitude / (cheapDistance / 2)) * delta
 
-            setTimeout(() => {
-
-                // consider reducing force based upon distance
-
-                force.set(finalXVel, finalYVel)
+            setTimeout(() => {force.set(finalXVel, finalYVel)
                 bodyApi.applyForceToCenter(force, uuid)
             }, delay)
 
@@ -87,21 +90,9 @@ const LgDisplacementRange: React.FC = () => {
 
     useEffect(() => {
 
-        // const x = 1.75;
-        // const y = 0.75;
-        // const pX = 1.4937880039215088;
-        // const pY = -0.4576660394668579;
-
-        // const x = 0;
-        // const y = -0.75;
-        // const pX = 0;
-        // const pY = 0;
-        //
-        // console.log('calcVector', calcVector(y, pY, x, pX))
-
         const interval = setInterval(() => {
             onUpdate()
-        }, 1000 / 30)
+        }, updateRate)
 
         return () => {
             clearInterval(interval)

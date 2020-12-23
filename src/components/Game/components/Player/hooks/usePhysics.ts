@@ -9,7 +9,7 @@ import {Vec2} from "planck-js";
 export const collisionRadius = 8
 export const mediumRadius = 3
 export const closeRadius = 1.5
-export const waterWidth = 3
+export const waterWidth = 3.5
 export const waterLength = 2.5
 export const waterOffset = 0.25
 

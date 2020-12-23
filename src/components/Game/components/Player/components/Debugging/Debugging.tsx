@@ -4,6 +4,7 @@ import {radians} from "../../../../../../utils/angles";
 import {closeRadius, collisionRadius, mediumRadius, waterLength, waterOffset, waterWidth} from "../../hooks/usePhysics";
 
 const Debugging: React.FC = () => {
+    return null
     return (
         <>
             {/*<Cylinder args={[collisionRadius, collisionRadius, 0.05, 20]} rotation={[radians(90), 0, 0]}>*/}
