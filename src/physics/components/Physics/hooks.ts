@@ -102,8 +102,8 @@ export const useBodyApi = (passedUuid: ValidUUID): BodyApi => {
 
 export const useCollisionEvents = (
                                     uuid: ValidUUID,
-                                    onCollideStart?: (data: any, fixtureIndex: number) => void,
-                                    onCollideEnd?: (data: any, fixtureIndex: number) => void,
+                                    onCollideStart?: (data: any, fixtureIndex: number, isSensor: boolean) => void,
+                                    onCollideEnd?: (data: any, fixtureIndex: number, isSensor: boolean) => void,
                                     ) => {
 
     const {

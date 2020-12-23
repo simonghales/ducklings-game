@@ -1,4 +1,5 @@
 import {Object3D} from "three";
+import {FixtureUserData} from "../../collisions/types";
 
 export type Buffers = { positions: Float32Array; angles: Float32Array }
 
@@ -20,9 +21,8 @@ export const collisionEndedEvents: {
 export type CollisionEventProps = {
     uuid: string,
     fixtureIndex: number,
-    data: {
-        uuid: string,
-    }
+    isSensor: boolean,
+    data: FixtureUserData | null
 }
 
 export const storedPhysicsData: {

@@ -42,7 +42,7 @@ export const useCollisionHandling = (uuid: ValidUUID, id: string) => {
     const onDucklingCollide = useOnDucklingCollide(id)
     const onPlayerCollide = useOnPlayerCollide(id)
 
-    const onCollisionStart = useCallback(({fixtureType}: FixtureUserData) => {
+    const onCollisionStart = useCallback(({fixtureType}: FixtureUserData, fixtureIndex: number, isSensor: boolean) => {
 
         switch (fixtureType) {
             case FixtureType.PLAYER:

@@ -3,7 +3,7 @@ import {ValidUUID} from "../../../utils/ids";
 import {CollisionEventProps} from "../Physics/data";
 
 export type CollisionsProviderContextState = {
-    addCollisionHandler: (started: boolean, uuid: ValidUUID, callback: (data: any, fixtureIndex: number) => void) => void,
+    addCollisionHandler: (started: boolean, uuid: ValidUUID, callback: (data: any, fixtureIndex: number, isSensor: boolean) => void) => void,
     removeCollisionHandler: (started: boolean, uuid: ValidUUID) => void,
     handleBeginCollision: (data: CollisionEventProps) => void,
     handleEndCollision: (data: CollisionEventProps) => void,
