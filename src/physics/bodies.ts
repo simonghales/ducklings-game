@@ -1,4 +1,4 @@
-import {BodyDef, Body, Box, Circle, FixtureOpt, Vec2, RopeJoint, Joint} from "planck-js";
+import {BodyDef, Body, Box, Circle, FixtureOpt, Vec2, RopeJoint, Joint, DistanceJoint} from "planck-js";
 import {dynamicBodiesUuids, existingBodies, planckWorld} from "./shared";
 import {Shape} from "planck-js/lib/shape";
 import {syncBodies} from "../workers/physics/functions";
@@ -172,9 +172,9 @@ export const addBody = ({uuid, cacheKey, listenForCollisions, fixtures = [], att
                     const {position, angle} = props
 
                     const ropeJointDef = {
-                        maxLength: 0.25,
+                        maxLength: 0.5,
                         localAnchorA: position,
-                        localAnchorB: position
+                        localAnchorB: position,
                     };
 
                     const startingBodyDef: BodyDef = {
@@ -187,7 +187,16 @@ export const addBody = ({uuid, cacheKey, listenForCollisions, fixtures = [], att
                     const startingBody = planckWorld.createBody(startingBodyDef)
 
                     if (body) {
-                        const rope = planckWorld.createJoint(RopeJoint(ropeJointDef, startingBody, body, position ?? Vec2(0, 0)) as unknown as Joint);
+
+                        const distanceJoint = DistanceJoint({
+                            collideConnected: false,
+                            frequencyHz: 5,
+                            dampingRatio: 0.5,
+                            length: 0.15,
+                        }, startingBody, body, position ?? Vec2(0, 0), position ?? Vec2(0, 0))
+
+                        const rope2 = planckWorld.createJoint(RopeJoint(ropeJointDef, startingBody, body, position ?? Vec2(0, 0)) as unknown as Joint);
+                        const rope = planckWorld.createJoint(distanceJoint as unknown as Joint);
                     }
 
 

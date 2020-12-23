@@ -18,13 +18,13 @@ const DuckWeed: React.FC<{
     const [ref] = useBody(() => ({
         type: BodyType.dynamic,
         position: Vec2(initialPosition[0], initialPosition[1]),
-        linearDamping: 2,
+        linearDamping: 5,
         attachToRope: true,
         fixtures: [{
             shape: BodyShape.circle,
             radius: 0.02,
             fixtureOptions: {
-                density: 0.3,
+                density: 5,
                 userData: {
                     reactToWater: true,
                 }
