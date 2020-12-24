@@ -10,6 +10,11 @@ import {calcVector} from "../../../../utils/vectors";
 const StyledContainer = styled.div`
     width: 100%;
     height: 100%;
+    
+    div div {
+      pointer-events: none;
+    }
+    
 `;
 
 const getClientXY = (event: any): [number, number] | null => {
