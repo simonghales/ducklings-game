@@ -8,7 +8,6 @@ const InteractivePlane: React.FC = () => {
     const onClick = useCallback((event: MouseEvent) => {
         const {point} = event
         const {x, y} = point
-        console.log('click!', x, y, event)
         playerInputsState.targetPosition = [x, y]
         playerInputsState.active = false
     }, [])
