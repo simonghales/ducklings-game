@@ -29,9 +29,10 @@ const Quack: React.FC = () => {
             const timeout = setTimeout(() => {
                 setQuacking(false)
             }, 1000)
-            return () => {
-                clearTimeout(timeout)
-            }
+            // sometimes was never set to false...
+            // return () => {
+            //     clearTimeout(timeout)
+            // }
         }
 
     }, [quacking, setQuacking])
