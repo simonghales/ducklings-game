@@ -76,7 +76,6 @@ export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => 
         let yVel = vector[1] * 7
 
         if (xDiff < 0.5 && yDiff < 0.5) {
-            console.log('slow down...', playerX, playerY)
             xVel = xVel / 2
             yVel = yVel / 2
         }

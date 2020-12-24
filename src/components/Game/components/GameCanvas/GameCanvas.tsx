@@ -24,7 +24,6 @@ const GameCanvas: React.FC = () => {
                         <Lights/>
                         <Camera/>
                         <Player/>
-                        <InteractivePlane/>
                         {/*<FollowTargets/>*/}
                         <Water/>
                         <Plants/>

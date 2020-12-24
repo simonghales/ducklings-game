@@ -8,6 +8,7 @@ import PlayerUIHelper from "./components/PlayerUIHelper/PlayerUIHelper";
 import Debugging from "./components/Debugging/Debugging";
 import {useCollisionsHandling} from "./hooks/useCollisionsHandling";
 import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
+import Physics from "../../../../physics/components/Physics/Physics";
 
 const Player: React.FC = () => {
 
@@ -25,6 +26,7 @@ const Player: React.FC = () => {
 
     return (
         <group ref={ref}>
+            <InteractivePlane/>
             <Duck/>
             <Debugging/>
             <PlayerUIHelper/>

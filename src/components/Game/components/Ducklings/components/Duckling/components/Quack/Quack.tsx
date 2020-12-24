@@ -8,6 +8,7 @@ import {useSpring, animated} from 'react-spring'
 const StyledContainer = styled.div`
   text-transform: uppercase;
   color: white;
+  pointer-events: none;
 `
 
 const Quack: React.FC = () => {
