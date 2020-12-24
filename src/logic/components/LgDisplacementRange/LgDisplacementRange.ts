@@ -68,7 +68,7 @@ const LgDisplacementRange: React.FC = () => {
             if (!object) return
             const {x: objX, y: objY} = object.position
 
-            const vector = calcVector(objY, y, objX, x)
+            const vector = calcVector(objX, x, objY, y)
 
             const objXVel = vector[0]
             const objYVel = vector[1]

@@ -1,6 +1,10 @@
 import {proxy} from "valtio";
+import {ValidUUID} from "../../../../utils/ids";
 
 export type DucklingLocalState = {
+    physicalCollisions: {
+      [uuid: string]: ValidUUID,
+    },
     foodSourcesInRange: {
         [id: string]: {
             added: number,
@@ -10,8 +14,17 @@ export type DucklingLocalState = {
 
 export const generateDucklingLocalState = (): DucklingLocalState => {
     return proxy({
+        physicalCollisions: {},
         foodSourcesInRange: {},
     })
+}
+
+export const addPhysicalCollision = (localState: DucklingLocalState, uuid: ValidUUID) => {
+    localState.physicalCollisions[uuid] = uuid
+}
+
+export const removePhysicalCollision = (localState: DucklingLocalState, uuid: ValidUUID) => {
+    delete localState.physicalCollisions[uuid]
 }
 
 export const addFoodSourceToDucklingRange = (localState: DucklingLocalState, foodId: string) => {
