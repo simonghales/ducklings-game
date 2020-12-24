@@ -3,15 +3,16 @@ import {ValidUUID} from "../../../../../../utils/ids";
 import {getSortedDucklings, updateDucklingsOrder, useSortedDucklings} from "../../../../state/ducklings";
 import {MutableRefObject, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {getDucklingUuid, getFoodUuid, getPlayerUuid} from "../../../../../../shared/uuids";
-import {radians} from "../../../../../../utils/angles";
+import {calculateAngleFromVector, radians} from "../../../../../../utils/angles";
 import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../../utils/numbers";
 import {BodyApi} from "../../../../../../physics/components/Physics/hooks";
-import {limitVector} from "../../../../../../utils/vectors";
+import {calculateVectorFromAngle, limitVector} from "../../../../../../utils/vectors";
 import {useMounted} from "../../../../../../shared/hooks/mounted";
-import {useDucklingId} from "../../context";
+import {useDucklingId, useDucklingLocalState} from "../../context";
 import {useDuckling} from "../useDuckling";
 import {getStoredMesh} from "../../../../state/meshes";
 import {Vec2} from "planck-js";
+import {useProxy} from "valtio";
 
 const vector = Vec2(0, 0)
 
@@ -219,6 +220,12 @@ export const useDucklingTargetUuid = (id: string, order: number | null): ValidUU
     return targetUuid
 }
 
+const useHasPhysicalCollision = (): boolean => {
+    const localState = useDucklingLocalState()
+    const proxyLocalState = useProxy(localState)
+    return Object.keys(proxyLocalState.physicalCollisions).length > 0
+}
+
 type MoveTowardFn = (delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance?: number, speedLimit?: number) => void
 
 export const useMoveTowards = (api: BodyApi) => {
@@ -237,6 +244,12 @@ export const useMoveTowards = (api: BodyApi) => {
         positionCooldown: number,
         lerpedTargetX: number,
         lerpedTargetY: number,
+        previousEarlyXVel: number,
+        previousEarlyYVel: number,
+        previousXPos: number,
+        previousYPos: number,
+        previousAdjustedXVel: number | null,
+        previousAdjustedYVel: number | null,
     }>({
         previousXVel: 0,
         previousYVel: 0,
@@ -251,7 +264,70 @@ export const useMoveTowards = (api: BodyApi) => {
         positionCooldown: 0,
         lerpedTargetX: 0,
         lerpedTargetY: 0,
+        previousEarlyXVel: 0,
+        previousEarlyYVel: 0,
+        previousXPos: 0,
+        previousYPos: 0,
+        previousAdjustedXVel: 0,
+        previousAdjustedYVel: 0,
     })
+
+
+    const hasPhysicalCollision = useHasPhysicalCollision()
+
+    // const id = useDucklingId()
+    //
+    // useEffect(() => {
+    //     console.log(`${id} hasPhysicalCollision`, hasPhysicalCollision)
+    // }, [hasPhysicalCollision, id])
+
+    const adjustIfStuck = useCallback((xVel: number, yVel: number, calculatedXVel: number, calculatedYVel: number, delta: number) => {
+
+        const previousXVel = localStateRef.current.previousEarlyXVel
+        const previousYVel = localStateRef.current.previousEarlyYVel
+
+        const wasMoving = Math.abs(previousXVel) > 0 || Math.abs(previousYVel) > 0
+        const isMoving = Math.abs(xVel) > 0 || Math.abs(yVel) > 0
+
+        const threshold = 1 * delta
+        const barelyMoved = (Math.abs(calculatedXVel) < threshold) && (Math.abs(calculatedYVel) < threshold)
+
+        if (hasPhysicalCollision && wasMoving && isMoving && barelyMoved) {
+
+            let angle = calculateAngleFromVector(xVel, yVel)
+
+            if (xVel > 0) {
+
+                if (yVel > 0) {
+                    // moving top right
+                    angle += radians(45)
+                } else {
+                    // moving bottom right
+                    angle += radians(-45)
+                }
+
+            } else {
+
+                if (yVel > 0) {
+                    // moving top left
+                    angle += radians(-45)
+                } else {
+                    // moving bottom left
+                    angle += radians(45)
+                }
+
+            }
+
+            const newVector = calculateVectorFromAngle(angle)
+
+            return newVector
+        }
+
+        // todo - move away from physically colliding elements, rather than hard-coded angles
+
+        return null
+
+    }, [hasPhysicalCollision])
 
     return useCallback((delta: number, self: Object3D, targetX: number, targetY: number, angle: number, allowedDistance: number = 0, speedLimit = 60) => {
 
@@ -310,6 +386,32 @@ export const useMoveTowards = (api: BodyApi) => {
             yVel *= -1
         }
 
+        const calculatedXVel = self.position.x - localState.previousXPos
+        const calculatedYVel = self.position.y - localState.previousYPos
+
+        const velocityAdjusted = adjustIfStuck(xVel, yVel, calculatedXVel, calculatedYVel, delta)
+
+        if (velocityAdjusted) {
+            xVel = velocityAdjusted[0]
+            yVel = velocityAdjusted[1]
+            localState.previousAdjustedXVel = xVel
+            localState.previousAdjustedYVel = yVel
+        } else {
+
+            if (localState.previousAdjustedXVel != null && localState.previousAdjustedYVel != null) {
+                xVel = localState.previousAdjustedXVel
+                yVel = localState.previousAdjustedYVel
+            }
+
+            localState.previousAdjustedXVel = null
+            localState.previousAdjustedYVel = null
+        }
+
+        localState.previousEarlyXVel = xVel
+        localState.previousEarlyYVel = yVel
+        localState.previousXPos = self.position.x
+        localState.previousYPos = self.position.y
+
         xVel = xVel * 2
         yVel = yVel * 2
 
@@ -330,7 +432,7 @@ export const useMoveTowards = (api: BodyApi) => {
         localState.previousXVel = finalX
         localState.previousYVel = finalY
 
-    }, [api])
+    }, [api, adjustIfStuck])
 }
 
 export const useFollowMethod = (

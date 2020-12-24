@@ -6,14 +6,14 @@ import {CollisionEventProps} from "../Physics/data";
 const CollisionsProvider: React.FC = ({children}) => {
 
     const [collisionStartedEvents] = useState<{
-        [key: string]: (data: any, fixtureIndex: number) => void,
+        [key: string]: (data: any, fixtureIndex: number, isSensor: boolean) => void,
     }>({})
 
     const [collisionEndedEvents] = useState<{
-        [key: string]: (data: any, fixtureIndex: number) => void,
+        [key: string]: (data: any, fixtureIndex: number, isSensor: boolean) => void,
     }>({})
 
-    const addCollisionHandler = useCallback((started: boolean, uuid: ValidUUID, callback: (data: any, fixtureIndex: number) => void) => {
+    const addCollisionHandler = useCallback((started: boolean, uuid: ValidUUID, callback: (data: any, fixtureIndex: number, isSensor: boolean) => void) => {
         if (started) {
             collisionStartedEvents[uuid] = callback
         } else {
@@ -31,13 +31,13 @@ const CollisionsProvider: React.FC = ({children}) => {
 
     const handleBeginCollision = useCallback((data: CollisionEventProps) => {
         if (collisionStartedEvents[data.uuid]) {
-            collisionStartedEvents[data.uuid](data.data, data.fixtureIndex)
+            collisionStartedEvents[data.uuid](data.data, data.fixtureIndex, data.isSensor)
         }
     }, [collisionStartedEvents])
 
     const handleEndCollision = useCallback((data: CollisionEventProps) => {
         if (collisionEndedEvents[data.uuid]) {
-            collisionEndedEvents[data.uuid](data.data, data.fixtureIndex)
+            collisionEndedEvents[data.uuid](data.data, data.fixtureIndex, data.isSensor)
         }
     }, [collisionEndedEvents])
 

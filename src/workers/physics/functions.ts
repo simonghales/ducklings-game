@@ -18,7 +18,7 @@ export const syncBodies = () => {
     }))*/
 }
 
-export const sendCollisionBeginEvent = (uuid: string, data: any, fixtureIndex: number) => {
+export const sendCollisionBeginEvent = (uuid: string, data: any, fixtureIndex: number, isSensor: boolean) => {
 
     const update = {
         type: WorkerOwnerMessageType.BEGIN_COLLISION,
@@ -26,6 +26,7 @@ export const sendCollisionBeginEvent = (uuid: string, data: any, fixtureIndex: n
             uuid,
             data,
             fixtureIndex,
+            isSensor,
         }
     }
     selfWorker.postMessage(update)
@@ -35,7 +36,7 @@ export const sendCollisionBeginEvent = (uuid: string, data: any, fixtureIndex: n
 
 }
 
-export const sendCollisionEndEvent = (uuid: string, data: any, fixtureIndex: number) => {
+export const sendCollisionEndEvent = (uuid: string, data: any, fixtureIndex: number, isSensor: boolean) => {
 
     const update = {
         type: WorkerOwnerMessageType.END_COLLISION,
@@ -43,6 +44,7 @@ export const sendCollisionEndEvent = (uuid: string, data: any, fixtureIndex: num
             uuid,
             data,
             fixtureIndex,
+            isSensor,
         }
     }
     selfWorker.postMessage(update)

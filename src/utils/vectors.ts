@@ -15,7 +15,7 @@
 convert: [1,2] to something else..
 
  */
-import {calculateAngle} from "./angles";
+import {calculateAngleBetweenVectors} from "./angles";
 
 export const getVectorMagnitude = (x: number, y: number): number => {
     return Math.sqrt(x * x + y * y)
@@ -45,12 +45,16 @@ export const calculateCheapDistance = (x: number, x2: number, y: number, y2: num
     return Math.pow(Math.abs(x - x2), 2) + Math.pow(Math.abs(y - y2), 2)
 }
 
-export const calcVector = (x1: number, x2: number, y1: number, y2: number): [number, number] => {
-
-    const angle = calculateAngle(x1, x2, y1, y2)
-    const xVector = Math.cos(angle)
-    const yVector = Math.sin(angle)
+export const calculateVectorFromAngle = (angle: number): [number, number] => {
+    const xVector = Math.sin(angle)
+    const yVector = Math.cos(angle)
 
     return [xVector, yVector]
+}
+
+export const calcVector = (x1: number, x2: number, y1: number, y2: number): [number, number] => {
+
+    const angle = calculateAngleBetweenVectors(x1, x2, y1, y2)
+    return calculateVectorFromAngle(angle)
 
 }

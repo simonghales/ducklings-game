@@ -29,11 +29,11 @@ export const handleBeginCollision = (fixtureA: Fixture, fixtureB: Fixture) => {
     const bUUID = getFixtureUuid(bData)
 
     if (aUUID && activeCollisionListeners[aUUID]) {
-        sendCollisionBeginEvent(aUUID, bData, getFixtureIndex(aData))
+        sendCollisionBeginEvent(aUUID, bData, getFixtureIndex(aData), fixtureB.isSensor())
     }
 
     if (bUUID && activeCollisionListeners[bUUID]) {
-        sendCollisionBeginEvent(bUUID, aData, getFixtureIndex(bData))
+        sendCollisionBeginEvent(bUUID, aData, getFixtureIndex(bData), fixtureA.isSensor())
     }
 }
 
@@ -44,10 +44,10 @@ export const handleEndCollision = (fixtureA: Fixture, fixtureB: Fixture) => {
     const bUUID = getFixtureUuid(bData)
 
     if (aUUID && activeCollisionListeners[aUUID]) {
-        sendCollisionEndEvent(aUUID, bData, getFixtureIndex(aData))
+        sendCollisionEndEvent(aUUID, bData, getFixtureIndex(aData), fixtureB.isSensor())
     }
 
     if (bUUID && activeCollisionListeners[bUUID]) {
-        sendCollisionEndEvent(bUUID, aData, getFixtureIndex(bData))
+        sendCollisionEndEvent(bUUID, aData, getFixtureIndex(bData), fixtureA.isSensor())
     }
 }

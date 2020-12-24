@@ -6,6 +6,8 @@ import {useWorkerCommunicationContext} from "../../WorkerCommunication/context";
 import {getDucklingMessageKey} from "../../../../../shared/messaging/keys";
 import {DucklingMessageDataType} from "../../../../../shared/messaging/types";
 import {getNumberOfFollowingDucklings, updateDuckling} from "../../../state/ducklings";
+import {useDucklingLocalState} from "../context";
+import {addPhysicalCollision, removePhysicalCollision} from "../state";
 
 const useOnDucklingCollide = (id: string) => {
 
@@ -37,12 +39,33 @@ const useOnPlayerCollide = (id: string) => {
     }, [id])
 }
 
+const usePhysicalCollisionHandlers = () => {
+
+    const localState = useDucklingLocalState()
+
+    const onBegin = useCallback((uuid: ValidUUID) => {
+        addPhysicalCollision(localState, uuid)
+    }, [localState])
+
+    const onEnd = useCallback((uuid: ValidUUID) => {
+        removePhysicalCollision(localState, uuid)
+    }, [localState])
+
+    return [onBegin, onEnd]
+
+}
+
 export const useCollisionHandling = (uuid: ValidUUID, id: string) => {
 
     const onDucklingCollide = useOnDucklingCollide(id)
     const onPlayerCollide = useOnPlayerCollide(id)
+    const [onPhysicalBegin, onPhysicalEnd] = usePhysicalCollisionHandlers()
 
-    const onCollisionStart = useCallback(({fixtureType}: FixtureUserData) => {
+    const onCollisionStart = useCallback(({uuid, fixtureType}: FixtureUserData, fixtureIndex: number, isSensor: boolean) => {
+
+        if (!isSensor) {
+            onPhysicalBegin(uuid)
+        }
 
         switch (fixtureType) {
             case FixtureType.PLAYER:
@@ -53,10 +76,15 @@ export const useCollisionHandling = (uuid: ValidUUID, id: string) => {
                 break;
         }
 
-    }, [id])
+    }, [id, onPhysicalBegin])
 
-    const onCollisionEnd = useCallback(({fixtureType}: FixtureUserData) => {
-    }, [])
+    const onCollisionEnd = useCallback(({uuid, fixtureType}: FixtureUserData, fixtureIndex: number, isSensor: boolean) => {
+
+        if (!isSensor) {
+            onPhysicalEnd(uuid)
+        }
+
+    }, [onPhysicalEnd])
 
     useCollisionEvents(uuid, onCollisionStart, onCollisionEnd)
 

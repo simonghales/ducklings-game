@@ -48,8 +48,8 @@ const Inputs: React.FC = ({children}) => {
         localState.referenceX = playerState.screenPosX
         localState.referenceY = playerState.screenPosY
         const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
-        playerInputsState.yVel = vector[0] * -1
-        playerInputsState.xVel = vector[1]
+        playerInputsState.xVel = vector[0]
+        playerInputsState.yVel = vector[1] * -1
         playerInputsState.active = true
     }, [centerX, centerY])
 
@@ -58,8 +58,8 @@ const Inputs: React.FC = ({children}) => {
         const position = getClientXY(event)
         if (!position) return
         const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
-        playerInputsState.yVel = vector[0] * -1
-        playerInputsState.xVel = vector[1]
+        playerInputsState.xVel = vector[0]
+        playerInputsState.yVel = vector[1] * -1
         playerInputsState.active = false
     }, [centerX, centerY])
 
@@ -70,8 +70,8 @@ const Inputs: React.FC = ({children}) => {
         localState.referenceX = numLerp(playerState.screenPosX, localState.referenceX, 0.5)
         localState.referenceY = numLerp(playerState.screenPosY, localState.referenceY, 0.5)
         const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
-        playerInputsState.yVel = vector[0] * -1
-        playerInputsState.xVel = vector[1]
+        playerInputsState.xVel = vector[0]
+        playerInputsState.yVel = vector[1] * -1
         // todo - calculate distance / threshold...
     }, [centerX, centerY])
 
