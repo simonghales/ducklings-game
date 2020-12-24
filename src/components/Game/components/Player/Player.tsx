@@ -7,6 +7,7 @@ import {playerGroupRef, useStoreRef} from "../../../../global/state/refs";
 import PlayerUIHelper from "./components/PlayerUIHelper/PlayerUIHelper";
 import Debugging from "./components/Debugging/Debugging";
 import {useCollisionsHandling} from "./hooks/useCollisionsHandling";
+import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
 
 const Player: React.FC = () => {
 

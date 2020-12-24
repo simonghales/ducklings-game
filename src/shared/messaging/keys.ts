@@ -1,3 +1,12 @@
+export const getStateSyncKey = () => {
+    return `stateSync`
+}
+
+export const getPlayerStateSyncKey = () => {
+    return `playerStateSync`
+}
+
+
 export const getFoodSourceManagerKey = () => {
     return `foodSourceManager`
 }

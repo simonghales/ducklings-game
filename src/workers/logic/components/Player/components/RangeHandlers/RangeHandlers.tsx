@@ -3,6 +3,7 @@ import {RangeType, useRangeElements} from "../../state/area";
 import {useEffect, useState} from "react";
 import {DucklingMessageType, sendDucklingMessage} from "../../../../../../messaging/ducklings";
 import {ValidUUID} from "../../../../../../utils/ids";
+import {addAvailableFoodSource, removeAvailableFoodSource} from "../../state/food";
 
 const RangeElement: React.FC<{
     id: string,
@@ -71,6 +72,8 @@ const RangeElement: React.FC<{
 
         if (active) {
 
+            addAvailableFoodSource(id)
+
             sendDucklingMessage({
                 type: DucklingMessageType.FOOD_SOURCE,
                 data: {
@@ -80,6 +83,9 @@ const RangeElement: React.FC<{
             })
 
             return () => {
+
+                removeAvailableFoodSource(id)
+
                 sendDucklingMessage({
                     type: DucklingMessageType.FOOD_SOURCE,
                     data: {

@@ -1,4 +1,4 @@
-import {MutableRefObject, useCallback, useMemo} from "react";
+import {MutableRefObject, useCallback, useEffect, useMemo} from "react";
 import {Group, Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {playerGroupRef} from "../../../../../global/state/refs";
@@ -6,6 +6,9 @@ import {numLerp} from "../../../../../utils/numbers";
 import {useDucklingsInRange} from "../../Player/state/ducklings";
 import {getStoredMesh} from "../../../../../workers/logic/state/meshes";
 import {getDucklingUuid} from "../../../../../shared/uuids";
+import {useProxy} from "valtio";
+import {miscPlayerState} from "../../Player/state/misc";
+import {useSpring} from "react-spring";
 
 const localState = {
     playerPreviousX: 0,
@@ -48,9 +51,27 @@ const calculateAveragePosition = (objects: Object3D[]): [x: number, y: number] |
     return [avgX, avgY]
 }
 
+const useDucklingsFollowSpring = () => {
+
+    const availableFoodSources = useProxy(miscPlayerState).availableFoodSources
+
+    const spring = useSpring({
+        ducklingsWeight: availableFoodSources ? 1 : 0,
+        config: {
+            mass: 1,
+            tension: 40,
+            friction: 26,
+        }
+    })
+
+    return spring
+
+}
+
 export const useFollow = (ref: MutableRefObject<Group>) => {
 
     const ducklingsInRange = useDucklingsInRangeObjects()
+    const spring = useDucklingsFollowSpring()
 
     const onFrame = useCallback((state: any, delta: number) => {
 
@@ -84,14 +105,15 @@ export const useFollow = (ref: MutableRefObject<Group>) => {
         let cameraY = playerY + adjustedYDiff
 
         if (averagePosition) {
-            cameraX = numLerp(averagePosition[0], cameraX, 0.66)
-            cameraY = numLerp(averagePosition[1], cameraY, 0.66)
+            const weight = numLerp(0.66, 0.15, spring.ducklingsWeight.getValue() as number)
+            cameraX = numLerp(averagePosition[0], cameraX, weight)
+            cameraY = numLerp(averagePosition[1], cameraY, weight)
         }
 
         ref.current.position.x = numLerp(cameraCurrentX, cameraX, 0.05)
         ref.current.position.y = numLerp(cameraCurrentY, cameraY, 0.05)
 
-    }, [ducklingsInRange])
+    }, [ducklingsInRange, spring])
 
     useFrame(onFrame)
 

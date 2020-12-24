@@ -7,6 +7,7 @@ import {useStoreMesh} from "../../state/meshes";
 import {useCollisionHandling} from "./hooks/useCollisionHandling";
 import RangeHandlers from "./components/RangeHandlers/RangeHandlers";
 import LgDisplacementRange from "../../../../logic/components/LgDisplacementRange/LgDisplacementRange";
+import StateSync from "./components/StateSync/StateSync";
 
 const Player: React.FC = () => {
 
@@ -18,6 +19,7 @@ const Player: React.FC = () => {
 
     return (
         <>
+            <StateSync/>
             <RangeHandlers/>
             <LgDisplacementRange/>
         </>
