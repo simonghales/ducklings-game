@@ -28,7 +28,6 @@ const Player: React.FC = () => {
             <Duck/>
             <Debugging/>
             <PlayerUIHelper/>
-            <InteractivePlane/>
         </group>
     );
 };

@@ -45,6 +45,7 @@ const Inputs: React.FC = ({children}) => {
         if (playerInputsState.active) return
         const position = getClientXY(event)
         if (!position) return
+        playerInputsState.targetPosition = null
         localState.referenceX = playerState.screenPosX
         localState.referenceY = playerState.screenPosY
         const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)

@@ -12,6 +12,8 @@ import Food from "../Food/Food";
 import FoodManager from "../../../../game/food/main/components/FoodManager/FoodManager";
 import Plants from "../../../../game/plants/main/components/Plants/Plants";
 import StateManager from "../../../../game/player/main/components/StateManager/StateManager";
+import PlayerUIHelper from "../Player/components/PlayerUIHelper/PlayerUIHelper";
+import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
 
 const GameCanvas: React.FC = () => {
     return (
@@ -22,6 +24,7 @@ const GameCanvas: React.FC = () => {
                         <Lights/>
                         <Camera/>
                         <Player/>
+                        <InteractivePlane/>
                         {/*<FollowTargets/>*/}
                         <Water/>
                         <Plants/>

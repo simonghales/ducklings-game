@@ -8,13 +8,14 @@ const InteractivePlane: React.FC = () => {
     const onClick = useCallback((event: MouseEvent) => {
         const {point} = event
         const {x, y} = point
+        console.log('click!', x, y, event)
         playerInputsState.targetPosition = [x, y]
         playerInputsState.active = false
     }, [])
 
     return (
         <>
-            <Plane visible={false} args={[50, 50]} position={[0, 0, 0.05]} receiveShadow onClick={onClick}/>
+            <Plane visible={false} args={[100, 100]} position={[0, 0, 0.05]} receiveShadow onClick={onClick}/>
         </>
     );
 };
