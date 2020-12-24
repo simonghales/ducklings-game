@@ -67,6 +67,7 @@ const Inputs: React.FC = ({children}) => {
         if (event.type === 'mousemove' && !playerInputsState.active) return
         const position = getClientXY(event)
         if (!position) return
+        playerInputsState.targetPosition = null
         localState.referenceX = numLerp(playerState.screenPosX, localState.referenceX, 0.5)
         localState.referenceY = numLerp(playerState.screenPosY, localState.referenceY, 0.5)
         const vector = calcVector(position[0], localState.referenceX, position[1], localState.referenceY)
