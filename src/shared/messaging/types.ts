@@ -1,4 +1,5 @@
 import {V2} from "../types";
+import {StateSyncUpdate} from "../../workers/logic/components/Player/components/StateSync/StateSync";
 
 export type MessageData = {
     key: string,
@@ -31,3 +32,5 @@ export type FoodSourceMessage = {
     type: FoodSourceMessageDataType,
     data: any
 }
+
+export type PlayerSyncStateMessage = StateSyncUpdate

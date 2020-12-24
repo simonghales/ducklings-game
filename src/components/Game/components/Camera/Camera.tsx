@@ -13,7 +13,6 @@ const Camera: React.FC = () => {
 
     useEffect(() => void setDefaultCamera(cameraRef.current), [])
 
-
     return (
         <group ref={groupRef}>
             <perspectiveCamera ref={cameraRef} position={[0.75, 1.75, 30]} fov={20}>
