@@ -1,34 +1,35 @@
-import {proxy} from "valtio";
+import {proxy, useProxy} from "valtio";
 import create from "zustand";
 
-export const usePlayerDucklingsState = create<{
-    ducklingsInRange: {
+export const playerDucklingsRangeState: {
+    largeRange: {
         [id: string]: number,
     },
-    setDucklingInRange: (id: string, inRange: boolean) => void,
-}>(set => ({
-    ducklingsInRange: {},
-    setDucklingInRange: (id: string, inRange: boolean) => {
-        return set(state => {
-            const ducklingsInRange = {...state.ducklingsInRange}
-            if (inRange) {
-                ducklingsInRange[id] = Date.now()
-            } else {
-                delete ducklingsInRange[id]
-            }
-            return {
-                ducklingsInRange,
-            }
-        })
+    mediumRange: {
+        [id: string]: number,
     },
-}))
+} = proxy({
+    largeRange: {},
+    mediumRange: {},
+})
 
-export const useDucklingsInRange = (): string[] => {
-    return usePlayerDucklingsState(state => Object.keys(state.ducklingsInRange))
+export const setDucklingInMediumRange = (id: string, inRange: boolean) => {
+    if (inRange) {
+        playerDucklingsRangeState.mediumRange[id] = Date.now()
+    } else {
+        delete playerDucklingsRangeState.mediumRange[id]
+    }
 }
 
-const {setDucklingInRange} = usePlayerDucklingsState.getState()
+export const setDucklingInLargeRange = (id: string, inRange: boolean) => {
+    if (inRange) {
+        playerDucklingsRangeState.largeRange[id] = Date.now()
+    } else {
+        delete playerDucklingsRangeState.largeRange[id]
+    }
+}
 
-export {
-    setDucklingInRange
+export const useDucklingsInRange = (): string[] => {
+    const ducklingsLargeRange = useProxy(playerDucklingsRangeState).largeRange
+    return Object.keys(ducklingsLargeRange)
 }

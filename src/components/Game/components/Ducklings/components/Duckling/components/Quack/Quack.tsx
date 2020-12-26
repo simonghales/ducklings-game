@@ -25,6 +25,8 @@ const Quack: React.FC = () => {
 
     useEffect(() => {
 
+        // todo - work out why sometimes this is remaining true permanently...
+
         if (quacking) {
             const timeout = setTimeout(() => {
                 setQuacking(false)

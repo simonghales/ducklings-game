@@ -2,7 +2,7 @@ import {useCollisionEvents} from "../../../../../physics/components/Physics/hook
 import {getPlayerUuid} from "../../../../../shared/uuids";
 import {useCallback} from "react";
 import {FixtureDucklingData, FixtureType, FixtureUserData} from "../../../../../shared/fixtures";
-import {setDucklingInRange} from "../state/ducklings";
+import {setDucklingInLargeRange, setDucklingInMediumRange} from "../state/ducklings";
 
 // matches usePhysics
 export enum Fixtures {
@@ -16,7 +16,11 @@ export enum Fixtures {
 export const useCollisionsHandling = () => {
 
     const onDucklingInRange = useCallback((enter: boolean, data: FixtureDucklingData) => {
-        setDucklingInRange(data.ducklingId, enter)
+        setDucklingInLargeRange(data.ducklingId, enter)
+    }, [])
+
+    const onDucklingInMediumRange = useCallback((enter: boolean, data: FixtureDucklingData) => {
+        setDucklingInMediumRange(data.ducklingId, enter)
     }, [])
 
     const onLargeCollider = useCallback((enter: boolean, data: FixtureUserData) => {
@@ -27,25 +31,39 @@ export const useCollisionsHandling = () => {
         }
     }, [onDucklingInRange])
 
+    const onMediumCollider = useCallback((enter: boolean, data: FixtureUserData) => {
+        switch (data.fixtureType) {
+            case FixtureType.DUCKLING:
+                onDucklingInMediumRange(enter, data as FixtureDucklingData)
+                break;
+        }
+    }, [onDucklingInMediumRange])
+
     const onCollideStart = useCallback((data: FixtureUserData, fixtureIndex: Fixtures) => {
         switch (fixtureIndex) {
             case Fixtures.BODY:
+                break;
+            case Fixtures.MEDIUM_SENSOR:
+                onMediumCollider(true, data)
                 break;
             case Fixtures.LARGE_SENSOR:
                 onLargeCollider(true, data)
                 break;
         }
-    }, [onLargeCollider])
+    }, [onLargeCollider, onMediumCollider])
 
     const onCollideEnd = useCallback((data: FixtureUserData, fixtureIndex: Fixtures) => {
         switch (fixtureIndex) {
             case Fixtures.BODY:
                 break;
+            case Fixtures.MEDIUM_SENSOR:
+                onMediumCollider(false, data)
+                break;
             case Fixtures.LARGE_SENSOR:
                 onLargeCollider(false, data)
                 break;
         }
-    }, [onLargeCollider])
+    }, [onLargeCollider, onMediumCollider])
 
     useCollisionEvents(getPlayerUuid(), onCollideStart, onCollideEnd)
 

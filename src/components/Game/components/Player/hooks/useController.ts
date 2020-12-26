@@ -2,12 +2,15 @@ import {BodyApi} from "../../../../../physics/components/Physics/hooks";
 import {useFrame} from "react-three-fiber";
 import {Vec2} from "planck-js";
 import {playerInputsState} from "../state/inputs";
-import {MutableRefObject, useCallback} from "react";
+import {MutableRefObject, useCallback, useMemo} from "react";
 import {Object3D} from "three";
 import {calculateAngleBetweenVectors, radians} from "../../../../../utils/angles";
 import {lerpRadians, numLerp, PI, PI_TIMES_TWO} from "../../../../../utils/numbers";
 import {useProxy} from "valtio";
 import {calcVector} from "../../../../../utils/vectors";
+import {playerDucklingsRangeState} from "../state/ducklings";
+import {miscPlayerState} from "../state/misc";
+import {useSpring} from "react-spring";
 
 const vel = Vec2(0, 0)
 
@@ -16,7 +19,38 @@ const localState = {
     prevYVel: 0,
 }
 
+const useCalculateSpeed = () => {
+
+    const ducklingsMediumRange = useProxy(playerDucklingsRangeState).mediumRange
+
+    const ducklingsInRange = Object.keys(ducklingsMediumRange).length > 0
+
+    const availableFoodSources = useProxy(miscPlayerState).availableFoodSources
+
+    const canGoFast = !availableFoodSources && ducklingsInRange
+
+    const spring = useSpring({
+        speedWeight: canGoFast ? 1 : 0,
+        config: {
+            mass: 1,
+            tension: 40,
+            friction: 26,
+        }
+    })
+
+    return useCallback(() => {
+
+        const speed = numLerp(5, 7, spring.speedWeight.getValue() as number)
+
+        return speed
+
+    }, [spring])
+
+}
+
 export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => {
+
+    const calculateSpeed = useCalculateSpeed()
 
     const targetPosition = useProxy(playerInputsState).targetPosition
 
@@ -53,8 +87,6 @@ export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => 
 
     const travelToDestination = useCallback((delta: number) => {
 
-        // todo - calculate velocity to reach the target...
-
         if (!targetPosition) return
 
         const [targetX, targetY] = targetPosition
@@ -72,8 +104,10 @@ export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => 
 
         const vector = calcVector(targetX, playerX, targetY, playerY)
 
-        let xVel = vector[0] * 7
-        let yVel = vector[1] * 7
+        const speed = calculateSpeed()
+
+        let xVel = vector[0] * speed
+        let yVel = vector[1] * speed
 
         if (xDiff < 0.5 && yDiff < 0.5) {
             xVel = xVel / 2
@@ -82,7 +116,7 @@ export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => 
 
         applyVelocity(delta, xVel, yVel, true)
 
-    }, [applyVelocity, targetPosition])
+    }, [applyVelocity, targetPosition, calculateSpeed])
 
     const onFrame = useCallback((state: any, delta: number) => {
 
@@ -91,12 +125,14 @@ export const useController = (ref: MutableRefObject<Object3D>, api: BodyApi) => 
             return
         }
 
-        const xVel = playerInputsState.xVel * 7
-        const yVel = playerInputsState.yVel * 7
+        const speed = calculateSpeed()
+
+        const xVel = playerInputsState.xVel * speed
+        const yVel = playerInputsState.yVel * speed
 
         applyVelocity(delta, xVel, yVel, playerInputsState.active)
 
-    }, [ref, api, travelToDestination, applyVelocity])
+    }, [ref, api, travelToDestination, applyVelocity, calculateSpeed])
 
     useFrame(onFrame)
 
