@@ -5,7 +5,7 @@ import {closeRadius, collisionRadius, mediumRadius, waterLength, waterOffset, wa
 
 const Debugging: React.FC = () => {
 
-    // return null
+    return null
 
     return (
         <>
