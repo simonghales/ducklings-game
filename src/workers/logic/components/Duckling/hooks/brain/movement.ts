@@ -13,6 +13,8 @@ import {useDuckling} from "../useDuckling";
 import {getStoredMesh} from "../../../../state/meshes";
 import {Vec2} from "planck-js";
 import {useProxy} from "valtio";
+import {increaseFoodLevel} from "../../state";
+import {updateFoodLevel} from "../../../../../../game/food/logic/state";
 
 const vector = Vec2(0, 0)
 
@@ -499,11 +501,15 @@ export const useFollowMethod = (
     }, [ref, api, offset, checkForReachedTarget, checkForCloserTarget, tempTarget, moveTowards])
 }
 
-export const useForageMethod = (self: Object3D, targetFoodSources: string[], moveTowards: MoveTowardFn) => {
+let tick = 0
 
+export const useForageMethod = (self: Object3D, targetFoodSources: string[], moveTowards: MoveTowardFn, isForaging: boolean) => {
+
+    const [withinEatingDistance, setWithinEatingDistance] = useState(false)
     const [justBeganForaging, setJustBeganForaging] = useState(false)
     const [isHurrying, setIsHurrying] = useState(false)
     const firstFoodSource = targetFoodSources.length > 0 ? targetFoodSources[0] : null
+    const localState = useDucklingLocalState()
 
     const speedLimit = isHurrying ? 60 : 40
 
@@ -520,6 +526,39 @@ export const useForageMethod = (self: Object3D, targetFoodSources: string[], mov
         }
 
     }, [firstFoodSource])
+
+    const consumeFood = useCallback(() => {
+
+        if (firstFoodSource) {
+            increaseFoodLevel(localState, 2)
+            updateFoodLevel(firstFoodSource, 2)
+        }
+
+    }, [firstFoodSource, localState])
+
+    useEffect(() => {
+
+        if (withinEatingDistance && isForaging) {
+
+            const interval = setInterval(() => {
+                consumeFood()
+            }, 500)
+
+            return () => {
+                clearInterval(interval)
+            }
+
+        }
+
+    }, [withinEatingDistance, isForaging, consumeFood])
+
+    useEffect(() => {
+
+        if (!isForaging) {
+            setWithinEatingDistance(false)
+        }
+
+    }, [isForaging, setWithinEatingDistance])
 
     useEffect(() => {
         setIsHurrying(false)
@@ -552,5 +591,11 @@ export const useForageMethod = (self: Object3D, targetFoodSources: string[], mov
         angle = lerpRadians(vectorAngle, prevAngle, 50 * delta)
         moveTowards(delta, self, targetX, targetY, angle, 0.4, speedLimit)
 
-    }, [self, moveTowards, targetObject, speedLimit])
+        const distance = calculateCheapDistance(self.position.x, targetX, self.position.y, targetY)
+
+        const withinRange = distance < 1
+
+        setWithinEatingDistance(withinRange)
+
+    }, [self, moveTowards, targetObject, speedLimit, setWithinEatingDistance])
 }

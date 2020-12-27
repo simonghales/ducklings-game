@@ -1,5 +1,4 @@
 import React, {useEffect, useRef} from "react";
-import {FoodSourceData} from "../../data/foodSource";
 import {useWorkerCommunicationContext} from "../../../workers/logic/components/WorkerCommunication/context";
 import {getFoodSourceManagerKey} from "../../../shared/messaging/keys";
 import {FoodSourceMessageDataType} from "../../../shared/messaging/types";
@@ -11,6 +10,8 @@ import {BodyShape, BodyType} from "../../../physics/bodies";
 import {Vec2} from "planck-js";
 import {FixtureType} from "../../../shared/fixtures";
 import {radius} from "../../../components/Game/components/Food/Food";
+import {FoodSourceData, useFoodManager} from "../../../game/food/logic/state";
+import {useProxy} from "valtio";
 
 const useSyncWithMain = (messageKey: string, addData: any, removeData: any) => {
 
@@ -68,17 +69,26 @@ const LgFoodSource: React.FC<{
     useSyncWithMain(getFoodSourceManagerKey(), {
         type: FoodSourceMessageDataType.ADD_FOOD,
         data: {
-            id: data.id,
-            position: data.position
+            ...data
         }
     }, {
         type: FoodSourceMessageDataType.REMOVE_FOOD,
         data: {
-            id: data.id,
+            id,
         }
     })
 
     return null;
 };
 
-export default LgFoodSource;
+const Wrapper: React.FC<{
+    id: string,
+}> = ({id}) => {
+
+    const data = useFoodManager(state => state.foodSources[id])
+
+    return <LgFoodSource data={data}/>
+
+}
+
+export default Wrapper;

@@ -2,6 +2,7 @@ import {proxy} from "valtio";
 import {ValidUUID} from "../../../../utils/ids";
 
 export type DucklingLocalState = {
+    foodLevel: number,
     physicalCollisions: {
       [uuid: string]: ValidUUID,
     },
@@ -14,9 +15,14 @@ export type DucklingLocalState = {
 
 export const generateDucklingLocalState = (): DucklingLocalState => {
     return proxy({
+        foodLevel: 50,
         physicalCollisions: {},
         foodSourcesInRange: {},
     })
+}
+
+export const increaseFoodLevel = (localState: DucklingLocalState, amount: number) => {
+    localState.foodLevel += amount
 }
 
 export const addPhysicalCollision = (localState: DucklingLocalState, uuid: ValidUUID) => {

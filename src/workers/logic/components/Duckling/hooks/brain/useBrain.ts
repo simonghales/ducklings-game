@@ -20,11 +20,12 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
     const [tempTarget, setTempTarget, isValidTarget] = useTempTargetObject(order)
     const moveTowards = useMoveTowards(api)
     const followMethod = useFollowMethod(ref, api, targetUuid, setTempTarget, isValidTarget, tempTarget, moveTowards)
-    const forageMethod = useForageMethod(ref.current, targetFoodSources, moveTowards)
+    const isForaging = !isFollowingPlayer
+    const forageMethod = useForageMethod(ref.current, targetFoodSources, moveTowards, isForaging)
 
     const onFrame = useCallback((delta: number) => {
 
-        if (!isFollowingPlayer) {
+        if (isForaging) {
             forageMethod(delta)
             return
         }
@@ -42,7 +43,7 @@ export const useBrain = (id: string, ref: MutableRefObject<Object3D>, api: BodyA
 
         followMethod(delta, targetObject)
 
-    }, [targetUuid, targetObject, refetchTargetObject, tempTarget, forageMethod, followMethod, isFollowingPlayer])
+    }, [targetUuid, targetObject, refetchTargetObject, tempTarget, forageMethod, followMethod, isForaging])
 
     useIntervalFrame(onFrame)
 

@@ -1,16 +1,17 @@
 import React from "react";
 import LgFoodSource from "../../components/LgFoodSource/LgFoodSource";
-import {tempFoodSourceData} from "../../data/foodSource";
 import LgPlants from "../../../game/plants/logic/components/LgPlants/LgPlants";
+import {useFoodSources} from "../../../game/food/logic/state";
 
 const PondScene: React.FC = () => {
-    const food = Object.values(tempFoodSourceData)
+    const food = useFoodSources()
+    // todo - move food into separate component...
     return (
         <>
             <LgPlants/>
             {
                 food.map((foodSource) => (
-                    <LgFoodSource data={foodSource} key={foodSource.id}/>
+                    <LgFoodSource id={foodSource} key={foodSource}/>
                 ))
             }
         </>
