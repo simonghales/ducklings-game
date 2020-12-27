@@ -9,6 +9,8 @@ import Debugging from "./components/Debugging/Debugging";
 import {useCollisionsHandling} from "./hooks/useCollisionsHandling";
 import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
 import Physics from "../../../../physics/components/Physics/Physics";
+import {radians} from "../../../../utils/angles";
+import {useTweaks} from "use-tweaks";
 
 const Player: React.FC = () => {
 
@@ -23,6 +25,13 @@ const Player: React.FC = () => {
 
     useStoreRef("player", ref.current)
     useController(ref, api)
+
+    // const {x, y, z, offset} = useTweaks({
+    //     x: { value: 0, min: 0, max: 360 },
+    //     y: { value: 180, min: 0, max: 360 },
+    //     z: { value: 0, min: 0, max: 360 },
+    //     offset: {value: 0, min: 0, max: 10}
+    // })
 
     return (
         <group ref={ref}>

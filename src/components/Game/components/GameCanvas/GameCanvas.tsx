@@ -14,6 +14,7 @@ import Plants from "../../../../game/plants/main/components/Plants/Plants";
 import StateManager from "../../../../game/player/main/components/StateManager/StateManager";
 import PlayerUIHelper from "../Player/components/PlayerUIHelper/PlayerUIHelper";
 import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
+import Random from "../../../../3d/Random/Random";
 
 const GameCanvas: React.FC = () => {
     return (
@@ -29,6 +30,7 @@ const GameCanvas: React.FC = () => {
                         <Plants/>
                         <FoodManager/>
                         <Ducklings/>
+                        {/*<Random/>*/}
                     </Physics>
                 </StateManager>
             </Messages>

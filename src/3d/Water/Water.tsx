@@ -93,9 +93,12 @@ const Water: React.FC = () => {
 
     return (
         <>
-            <Plane args={[20, 20]} receiveShadow>
+            <Plane args={[20, 20]} position={[0, 0, -0.5]}>
                 {/*<meshPhongMaterial color={`#223f56`} />*/}
                 <CustomMaterial/>
+            </Plane>
+            <Plane args={[20, 20]} receiveShadow>
+                <meshPhongMaterial color={`#223f56`} transparent opacity={0.2} />
             </Plane>
             {/*<gridHelper args={[20, 20, 'black', 'black']} rotation={[radians(90), 0, 0]}/>*/}
         </>
