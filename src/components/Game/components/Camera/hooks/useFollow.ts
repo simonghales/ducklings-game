@@ -1,4 +1,4 @@
-import {MutableRefObject, useCallback, useEffect, useMemo} from "react";
+import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react";
 import {Group, Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {playerGroupRef} from "../../../../../global/state/refs";
@@ -68,13 +68,43 @@ const useDucklingsFollowSpring = () => {
 
 }
 
-const useCalculateOffset = (): [() => [number, number], () => [number, number]] => {
+type AdjustFn = (cameraX: number, cameraY: number) => [number, number]
 
+const useCalculations = (): [() => [number, number], AdjustFn] => {
+
+    const localStateRef = useRef<{
+        previousAverage: [number, number] | null,
+    }>({
+        previousAverage: null,
+    })
+    const ducklingsInRange = useDucklingsInRangeObjects()
     const spring = useDucklingsFollowSpring()
 
-    const adjustToDucklings = useCallback<() => [number, number]>(() => {
-        return [0, 0]
-    }, [])
+    const localState = localStateRef.current
+
+    const adjustToDucklings = useCallback<AdjustFn>((cameraX, cameraY) => {
+
+        const averagePosition = calculateAveragePosition(ducklingsInRange)
+
+        const {previousAverage} = localState
+
+        if (averagePosition) {
+            localState.previousAverage = averagePosition
+        }
+
+        if (!averagePosition || !previousAverage) {
+            return [cameraX, cameraY]
+        }
+
+        const averageX = numLerp(previousAverage[0], averagePosition[0], 0.5)
+        const averageY = numLerp(previousAverage[1], averagePosition[1], 0.5)
+
+        const weight = numLerp(0.66, 0.33, spring.ducklingsWeight.getValue() as number)
+        cameraX = numLerp(averageX, cameraX, weight)
+        cameraY = numLerp(averageY, cameraY, weight)
+
+        return [cameraX, cameraY]
+    }, [ducklingsInRange, localState])
 
     const calculateOffset = useCallback<() => [number, number]>(() => {
 
@@ -93,13 +123,9 @@ const useCalculateOffset = (): [() => [number, number], () => [number, number]] 
 
 export const useFollow = (ref: MutableRefObject<Group>) => {
 
-    const ducklingsInRange = useDucklingsInRangeObjects()
-    const spring = useDucklingsFollowSpring()
-    const [calculateOffset, adjustToDucklings] = useCalculateOffset()
+    const [calculateOffset, adjustToDucklings] = useCalculations()
 
     const onFrame = useCallback((state: any, delta: number) => {
-
-        const averagePosition = calculateAveragePosition(ducklingsInRange)
 
         const cameraCurrentX = ref.current.position.x
         const cameraCurrentY = ref.current.position.y
@@ -128,12 +154,10 @@ export const useFollow = (ref: MutableRefObject<Group>) => {
         let cameraX = playerX + adjustedXDiff
         let cameraY = playerY + adjustedYDiff
 
-        if (averagePosition) {
-            // const weight = numLerp(0.66, 0.15, spring.ducklingsWeight.getValue() as number)
-            const weight = numLerp(0.66, 0.33, spring.ducklingsWeight.getValue() as number)
-            cameraX = numLerp(averagePosition[0], cameraX, weight)
-            cameraY = numLerp(averagePosition[1], cameraY, weight)
-        }
+        const [adjustedX, adjustedY] = adjustToDucklings(cameraX, cameraY)
+
+        cameraX = adjustedX
+        cameraY = adjustedY
 
         const [offsetX, offsetY] = calculateOffset()
 
@@ -143,7 +167,7 @@ export const useFollow = (ref: MutableRefObject<Group>) => {
         ref.current.position.x = numLerp(cameraCurrentX, cameraX, 0.05)
         ref.current.position.y = numLerp(cameraCurrentY, cameraY, 0.05)
 
-    }, [ducklingsInRange, spring, calculateOffset, adjustToDucklings])
+    }, [calculateOffset, adjustToDucklings])
 
     useFrame(onFrame)
 
