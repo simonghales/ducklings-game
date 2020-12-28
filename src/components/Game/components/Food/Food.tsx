@@ -1,8 +1,9 @@
 import React from "react"
 import {radians} from "../../../../utils/angles";
 import {Cylinder} from "@react-three/drei";
-import { a, useSpring } from 'react-spring/three'
+// import { a, useSpring } from 'react-spring/three'
 import {FoodSourceData} from "../../../../game/food/logic/state";
+import { useSpring } from "react-spring";
 
 export const radius = 0.2
 
@@ -22,11 +23,11 @@ const Food: React.FC<{
 
     return (
         <group position={[position[0], position[1], 0]}>
-            <a.group scale-x={scale} scale-y={scale}>
+            {/*<a.group scale-x={scale} scale-y={scale}>*/}
                 <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
                     <meshBasicMaterial color={color} transparent opacity={1} />
                 </Cylinder>
-            </a.group>
+            {/*</a.group>*/}
         </group>
     )
 }
