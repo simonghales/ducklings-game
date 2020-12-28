@@ -99,7 +99,7 @@ const useCalculations = (): [() => [number, number], AdjustFn] => {
         const averageX = numLerp(previousAverage[0], averagePosition[0], 0.5)
         const averageY = numLerp(previousAverage[1], averagePosition[1], 0.5)
 
-        const weight = numLerp(0.66, 0.33, spring.ducklingsWeight.getValue() as number)
+        const weight = numLerp(0.66, 0.33, spring.ducklingsWeight.get() as number)
         cameraX = numLerp(averageX, cameraX, weight)
         cameraY = numLerp(averageY, cameraY, weight)
 
@@ -108,7 +108,7 @@ const useCalculations = (): [() => [number, number], AdjustFn] => {
 
     const calculateOffset = useCallback<() => [number, number]>(() => {
 
-        const weight = spring.ducklingsWeight.getValue() as number
+        const weight = spring.ducklingsWeight.get() as number
 
         const xOffset = numLerp( 0.75, 0, weight)
         const yOffset = numLerp( 1.75, 0, weight)
