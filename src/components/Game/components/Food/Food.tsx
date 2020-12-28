@@ -1,7 +1,6 @@
 import React, {useCallback, useRef} from "react"
 import {radians} from "../../../../utils/angles";
 import {Cylinder} from "@react-three/drei";
-// import { a, useSpring } from 'react-spring/three'
 import {FoodSourceData} from "../../../../game/food/logic/state";
 import { useSpring } from "react-spring";
 import {Group} from "three";
@@ -18,8 +17,8 @@ const Food: React.FC<{
     const {id, position, food} = data
     const ref = useRef<Group>(null as unknown as Group)
 
-    const { spring } = useSpring({
-        spring: food,
+    const spring = useSpring({
+        food: food,
         config: {
             mass: 1,
             tension: 40,
@@ -27,14 +26,12 @@ const Food: React.FC<{
         },
     })
 
-    const scale = spring.to([0, 50], [0.1, 1])
-
     const onFrame = useCallback(() => {
-        const value = scale.get()
+        const value = (spring.food.getValue() as number) / 50
         const lerped = numLerp(value, ref.current.scale.x, 0.5)
         ref.current.scale.x = lerped
         ref.current.scale.y = lerped
-    }, [ref, scale])
+    }, [ref, spring])
 
     useFrame(onFrame)
 
