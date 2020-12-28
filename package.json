@@ -8,6 +8,8 @@
     "@react-hook/window-size": "^3.0.7",
     "@react-spring/three": "^9.0.0-rc.3",
     "@react-three/drei": "^2.2.12",
+    "@sentry/react": "^5.29.2",
+    "@sentry/tracing": "^5.29.2",
     "@svgr/webpack": "5.4.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
