@@ -27,6 +27,7 @@ const Food: React.FC<{
     })
 
     const onFrame = useCallback(() => {
+        if (!ref.current) return
         const value = (spring.food.getValue() as number) / 50
         const lerped = numLerp(value, ref.current.scale.x, 0.5)
         ref.current.scale.x = lerped
