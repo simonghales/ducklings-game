@@ -1,5 +1,5 @@
 import {MutableRefObject, useCallback, useEffect, useMemo, useRef} from "react";
-import {Group, Object3D} from "three";
+import {DirectionalLight, Group, Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {playerGroupRef} from "../../../../../global/state/refs";
 import {numLerp} from "../../../../../utils/numbers";
@@ -121,7 +121,7 @@ const useCalculations = (): [() => [number, number], AdjustFn] => {
 
 }
 
-export const useFollow = (ref: MutableRefObject<Group>) => {
+export const useFollow = (ref: MutableRefObject<Group>, lightRef: MutableRefObject<DirectionalLight>) => {
 
     const [calculateOffset, adjustToDucklings] = useCalculations()
 
@@ -167,7 +167,14 @@ export const useFollow = (ref: MutableRefObject<Group>) => {
         ref.current.position.x = numLerp(cameraCurrentX, cameraX, 0.05)
         ref.current.position.y = numLerp(cameraCurrentY, cameraY, 0.05)
 
-    }, [calculateOffset, adjustToDucklings])
+        const light = lightRef.current
+        const camera = ref.current
+        light.target.position.x = camera.position.x
+        light.target.position.y = camera.position.y
+        light.target.position.z = camera.position.z
+        light.target.updateMatrixWorld()
+
+    }, [calculateOffset, adjustToDucklings, ref, lightRef])
 
     useFrame(onFrame)
 
