@@ -42,7 +42,7 @@ const useSyncWithMain = (messageKey: string, addData: any, removeData: any) => {
 const LgFoodSource: React.FC<{
     data: FoodSourceData
 }> = ({data}) => {
-    const {id, position} = data
+    const {id, position, food} = data
     const uuid = getFoodUuid(id)
     const ref = useRef(new Object3D())
     useBodyRaw(() => ({
@@ -77,6 +77,27 @@ const LgFoodSource: React.FC<{
             id,
         }
     })
+
+    const {
+        sendMessageToMain
+    } = useWorkerCommunicationContext()
+
+    useEffect(() => {
+
+        sendMessageToMain({
+            key: getFoodSourceManagerKey(),
+            data: {
+                type: FoodSourceMessageDataType.UPDATE_FOOD,
+                data: {
+                    id,
+                    update: {
+                        food,
+                    }
+                }
+            },
+        })
+
+    }, [food, id])
 
     return null;
 };

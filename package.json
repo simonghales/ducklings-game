@@ -6,6 +6,7 @@
     "@babel/core": "7.12.3",
     "@pmmmwh/react-refresh-webpack-plugin": "0.4.2",
     "@react-hook/window-size": "^3.0.7",
+    "@react-spring/three": "^9.0.0-rc.3",
     "@react-three/drei": "^2.2.12",
     "@svgr/webpack": "5.4.0",
     "@testing-library/jest-dom": "^5.11.4",

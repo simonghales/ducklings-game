@@ -1,12 +1,8 @@
 import React from "react"
 import {radians} from "../../../../utils/angles";
 import {Cylinder} from "@react-three/drei";
-import {useBody} from "../../../../physics/components/Physics/hooks";
-import {BodyShape, BodyType} from "../../../../physics/bodies";
-import {Vec2} from "planck-js";
-import {getFoodUuid} from "../../../../shared/uuids";
-import {FixtureType} from "../../../../shared/fixtures";
-import {FoodSourceData} from "../../../../game/food/main/data";
+import { a, useSpring } from '@react-spring/three'
+import {FoodSourceData} from "../../../../game/food/logic/state";
 
 export const radius = 0.2
 
@@ -15,12 +11,22 @@ const color = '#48792a'
 const Food: React.FC<{
     data: FoodSourceData,
 }> = ({data}) => {
-    const {id, position} = data
+    const {id, position, food} = data
+
+    const { spring } = useSpring({
+        spring: food / 50,
+        config: { mass: 5, tension: 400, friction: 50, precision: 0.0001 },
+    })
+
+    const scale = spring.to([0, 1], [0.1, 1])
+
     return (
         <group position={[position[0], position[1], 0]}>
-            <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
-                <meshBasicMaterial color={color} transparent opacity={1} />
-            </Cylinder>
+            <a.group scale-x={scale} scale-y={scale}>
+                <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
+                    <meshBasicMaterial color={color} transparent opacity={1} />
+                </Cylinder>
+            </a.group>
         </group>
     )
 }

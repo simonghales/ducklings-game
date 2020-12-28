@@ -6,7 +6,6 @@ export const getPlayerStateSyncKey = () => {
     return `playerStateSync`
 }
 
-
 export const getFoodSourceManagerKey = () => {
     return `foodSourceManager`
 }
