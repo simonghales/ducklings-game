@@ -28,6 +28,10 @@ export const normalizeVector = (x: number, y: number, length?: number) => {
     return [x / length, y / length]
 }
 
+export const calculateDistance = (x1: number, x2: number, y1: number, y2: number): number => {
+    return getVectorMagnitude(Math.abs(x1 - x2), Math.abs(y1 - y2))
+}
+
 export const limitVector = (x: number, y: number, maximum: number): [number, number] => {
     const magnitude = getVectorMagnitude(x, y)
 
