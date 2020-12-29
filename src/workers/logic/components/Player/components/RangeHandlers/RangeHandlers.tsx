@@ -15,14 +15,6 @@ const RangeElement: React.FC<{
     const [closeActivated, setCloseActivated] = useState(false)
     const [activated, setActivated] = useState(false)
 
-    /*
-
-    after 1200, set close activated
-
-    after close activated, wait 500 and set activated
-
-     */
-
     useEffect(() => {
         if (short) {
 
@@ -57,6 +49,22 @@ const RangeElement: React.FC<{
         }
 
     }, [activated, setActivated, closeActivated])
+
+    useEffect(() => {
+
+        if (medium && !activated) {
+
+            const timeout = setTimeout(() => {
+                setActivated(true)
+            }, 2000)
+
+            return () => {
+                clearTimeout(timeout)
+            }
+
+        }
+
+    }, [medium, activated, setActivated])
 
     useEffect(() => {
 
