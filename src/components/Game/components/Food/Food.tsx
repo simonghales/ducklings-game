@@ -3,9 +3,11 @@ import {radians} from "../../../../utils/angles";
 import {Cylinder} from "@react-three/drei";
 import {FoodSourceData} from "../../../../game/food/logic/state";
 import { useSpring } from "react-spring";
-import {Group} from "three";
+import {Group, Object3D} from "three";
 import {useFrame} from "react-three-fiber";
 import {numLerp} from "../../../../utils/numbers";
+import {useBodySync} from "../../../../physics/components/Physics/hooks";
+import {getFoodUuid} from "../../../../shared/uuids";
 
 export const radius = 0.2
 
@@ -14,8 +16,10 @@ const color = '#48792a'
 const Food: React.FC<{
     data: FoodSourceData,
 }> = ({data}) => {
-    const {id, position, food} = data
-    const ref = useRef<Group>(null as unknown as Group)
+    const {id, food} = data
+    const ref = useRef<Object3D>(new Object3D())
+    const uuid = getFoodUuid(id)
+    useBodySync(ref, uuid, true)
 
     const spring = useSpring({
         food: food,
@@ -37,7 +41,7 @@ const Food: React.FC<{
     useFrame(onFrame)
 
     return (
-        <group ref={ref} position={[position[0], position[1], 0]}>
+        <group ref={ref}>
             {/*<a.group scale-x={scale} scale-y={scale}>*/}
                 <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
                     <meshBasicMaterial color={color} transparent opacity={1} />

@@ -38,7 +38,7 @@ const DuckWeed: React.FC<{
     return (
         <group ref={ref}>
             <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
-                <meshBasicMaterial color={color} transparent opacity={1} />
+                <meshPhongMaterial color={color} />
             </Cylinder>
         </group>
     )
