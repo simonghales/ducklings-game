@@ -16,6 +16,7 @@ import PlayerUIHelper from "../Player/components/PlayerUIHelper/PlayerUIHelper";
 import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
 import Random from "../../../../3d/Random/Random";
 import {useGameTweaks} from "../../../../game/tweaks";
+import Land from "../../../../3d/Land/Land";
 
 const GameCanvas: React.FC = () => {
     useGameTweaks()
@@ -28,6 +29,7 @@ const GameCanvas: React.FC = () => {
                         <Camera/>
                         <Player/>
                         {/*<FollowTargets/>*/}
+                        <Land/>
                         <Water/>
                         <Plants/>
                         <FoodManager/>

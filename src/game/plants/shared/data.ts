@@ -109,6 +109,6 @@ export type LilypadClump = {
 
 export const lilypadClumps: LilypadClump[] = [
     generateLilypadClump('first', [3, 3]),
-    generateLilypadClump('second', [-5, 10]),
+    generateLilypadClump('second', [5, 10]),
     generateLilypadClump('third', [-3, -3]),
 ]
