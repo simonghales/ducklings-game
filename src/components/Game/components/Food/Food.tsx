@@ -8,10 +8,15 @@ import {useFrame} from "react-three-fiber";
 import {numLerp} from "../../../../utils/numbers";
 import {useBodySync} from "../../../../physics/components/Physics/hooks";
 import {getFoodUuid} from "../../../../shared/uuids";
+import {useProxy} from "valtio";
+import {gameColorsProxy} from "../../../../game/colors";
 
 export const radius = 0.2
 
-const color = '#48792a'
+const useColor = (color: string): string => {
+    const colors = useProxy(gameColorsProxy)
+    return colors[color] ?? ''
+}
 
 const Food: React.FC<{
     data: FoodSourceData,
@@ -39,6 +44,8 @@ const Food: React.FC<{
     }, [ref, spring])
 
     useFrame(onFrame)
+
+    const color = useColor('orange')
 
     return (
         <group ref={ref}>

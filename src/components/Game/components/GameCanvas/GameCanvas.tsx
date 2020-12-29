@@ -15,8 +15,10 @@ import StateManager from "../../../../game/player/main/components/StateManager/S
 import PlayerUIHelper from "../Player/components/PlayerUIHelper/PlayerUIHelper";
 import InteractivePlane from "../../../../game/player/main/components/InteractivePlane/InteractivePlane";
 import Random from "../../../../3d/Random/Random";
+import {useGameTweaks} from "../../../../game/tweaks";
 
 const GameCanvas: React.FC = () => {
+    useGameTweaks()
     return (
         <Canvas shadowMap>
             <Messages>

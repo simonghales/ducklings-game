@@ -5,18 +5,22 @@ import {useBody} from "../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../physics/bodies";
 import {Vec2} from "planck-js";
 import {getPlantUuid} from "../../../../shared/uuids";
-import { getLilypadColor } from "../../../../game/plants/shared/data";
+import {getLilypadColor, getLilypadScale} from "../../../../game/plants/shared/data";
+import {useProxy} from "valtio";
+import {gameColorsProxy} from "../../../../game/colors";
 
 const radius = 0.3
 
 const useLilypadColors = (): string[] => {
-    return []
+    const colors = useProxy(gameColorsProxy)
+    return [colors.greenA, colors.greenB, colors.greenC, colors.greenD]
 }
 
 const useLilypadColor = (id: string): string => {
     const colors = useLilypadColors()
-    const [lilypadColor] = useState(() => getLilypadColor(id, colors))
-    return lilypadColor
+    return getLilypadColor(id, colors)
+    // const [lilypadColor] = useState(() => getLilypadColor(id, colors))
+    // return lilypadColor
 }
 
 const DuckWeed: React.FC<{
@@ -45,9 +49,10 @@ const DuckWeed: React.FC<{
     })
 
     const lilypadColor = useLilypadColor(id)
+    const [scale] = useState(() => getLilypadScale(id))
 
     return (
-        <group ref={ref}>
+        <group ref={ref} scale={[scale, scale, 1]}>
             <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
                 <meshPhongMaterial color={lilypadColor} />
             </Cylinder>

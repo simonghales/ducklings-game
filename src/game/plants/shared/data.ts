@@ -6,10 +6,14 @@ import {numLerp} from "../../../utils/numbers";
 
 let lilypadCount = 0
 
+export const getLilypadScale = (id: string): number => {
+    const randomSeed = random.createRandom(id)
+    return numLerp(0.75, 1.2, randomSeed.value())
+}
+
 export const getLilypadColor = (id: string, colors: string[]): string => {
     const randomSeed = random.createRandom(id)
-    console.log('random', randomSeed.value())
-    return '#355d29'
+    return randomSeed.pick(colors)
 }
 
 const getLilypadId = (): string => {
