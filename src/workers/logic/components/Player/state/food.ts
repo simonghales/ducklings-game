@@ -1,4 +1,4 @@
-import {proxy} from "valtio";
+import {proxy, useProxy} from "valtio";
 
 export const availableFoodSources = proxy<{
     foodSources: {
@@ -7,6 +7,10 @@ export const availableFoodSources = proxy<{
 }>({
     foodSources: {},
 })
+
+export const useAvailableFoodSources = (): string[] => {
+    return Object.keys(useProxy(availableFoodSources).foodSources)
+}
 
 export const addAvailableFoodSource = (id: string) => {
     availableFoodSources.foodSources[id] = Date.now()

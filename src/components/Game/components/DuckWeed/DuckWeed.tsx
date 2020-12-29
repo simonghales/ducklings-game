@@ -1,14 +1,23 @@
-import React from "react"
+import React, {useState} from "react"
 import {radians} from "../../../../utils/angles";
 import {Cylinder} from "@react-three/drei";
 import {useBody} from "../../../../physics/components/Physics/hooks";
 import {BodyShape, BodyType} from "../../../../physics/bodies";
 import {Vec2} from "planck-js";
 import {getPlantUuid} from "../../../../shared/uuids";
+import { getLilypadColor } from "../../../../game/plants/shared/data";
 
 const radius = 0.3
 
-const color = '#355d29'
+const useLilypadColors = (): string[] => {
+    return []
+}
+
+const useLilypadColor = (id: string): string => {
+    const colors = useLilypadColors()
+    const [lilypadColor] = useState(() => getLilypadColor(id, colors))
+    return lilypadColor
+}
 
 const DuckWeed: React.FC<{
     id: string,
@@ -35,10 +44,12 @@ const DuckWeed: React.FC<{
         uuid: getPlantUuid(id)
     })
 
+    const lilypadColor = useLilypadColor(id)
+
     return (
         <group ref={ref}>
             <Cylinder args={[radius, radius, 0.1, 20]} rotation={[radians(90), 0, 0]} receiveShadow castShadow>
-                <meshPhongMaterial color={color} />
+                <meshPhongMaterial color={lilypadColor} />
             </Cylinder>
         </group>
     )

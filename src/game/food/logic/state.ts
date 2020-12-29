@@ -1,6 +1,6 @@
 import {proxy, useProxy} from "valtio";
-import {V2} from "../../../shared/types";
 import create from "zustand";
+import {V2} from "../../../shared/types";
 
 export type FoodSourceData = {
     id: string,

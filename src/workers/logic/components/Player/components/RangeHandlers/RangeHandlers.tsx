@@ -2,8 +2,12 @@ import * as React from "react"
 import {RangeType, useRangeElements} from "../../state/area";
 import {useEffect, useState} from "react";
 import {DucklingMessageType, sendDucklingMessage} from "../../../../../../messaging/ducklings";
-import {ValidUUID} from "../../../../../../utils/ids";
-import {addAvailableFoodSource, removeAvailableFoodSource} from "../../state/food";
+import {addAvailableFoodSource, removeAvailableFoodSource, useAvailableFoodSources} from "../../state/food";
+
+const useIsFoodAvailable = (): boolean => {
+    const foodSources = useAvailableFoodSources()
+    return foodSources.length > 0
+}
 
 const RangeElement: React.FC<{
     id: string,
@@ -50,9 +54,13 @@ const RangeElement: React.FC<{
 
     }, [activated, setActivated, closeActivated])
 
+    const foodIsAvailable = useIsFoodAvailable()
+
+    const mediumActive = medium && foodIsAvailable
+
     useEffect(() => {
 
-        if (medium && !activated) {
+        if (mediumActive && !activated) {
 
             const timeout = setTimeout(() => {
                 setActivated(true)
@@ -64,7 +72,7 @@ const RangeElement: React.FC<{
 
         }
 
-    }, [medium, activated, setActivated])
+    }, [mediumActive, activated, setActivated])
 
     useEffect(() => {
 

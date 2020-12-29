@@ -40,7 +40,8 @@ const useCalculateSpeed = () => {
 
     return useCallback(() => {
 
-        const speed = numLerp(5, 7, spring.speedWeight.getValue() as number)
+        // const speed = numLerp(5, 7, spring.speedWeight.getValue() as number)
+        const speed = numLerp(4.5, 6, spring.speedWeight.getValue() as number)
 
         return speed
 

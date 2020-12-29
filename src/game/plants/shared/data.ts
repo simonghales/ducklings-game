@@ -1,9 +1,16 @@
+import seedrandom from "seedrandom";
+import random from "canvas-sketch-util/random"
 import {V2} from "../../../shared/types";
 import {calculateDistance} from "../../../utils/vectors";
-import seedrandom from "seedrandom";
 import {numLerp} from "../../../utils/numbers";
 
 let lilypadCount = 0
+
+export const getLilypadColor = (id: string, colors: string[]): string => {
+    const randomSeed = random.createRandom(id)
+    console.log('random', randomSeed.value())
+    return '#355d29'
+}
 
 const getLilypadId = (): string => {
     const id = `lilypad-${lilypadCount}`
@@ -13,7 +20,6 @@ const getLilypadId = (): string => {
 
 type LilypadData = {
     id: string,
-    seed: number,
     radius: number,
     position: V2,
 }
@@ -26,16 +32,15 @@ const isOverlapping = (lilypadA: LilypadData, lilypadB: LilypadData): boolean =>
 
 }
 
-const generateRandomLilypad = (existingLilypads: LilypadData[], radius: number, seeds: [number, number, number]): LilypadData | null => {
+const generateRandomLilypad = (existingLilypads: LilypadData[], radius: number, seeds: [number, number]): LilypadData | null => {
 
     let remainingAttempts = 50
 
     while (remainingAttempts > 0) {
         remainingAttempts -= 1
 
-        const seed = seeds[0];
-        const u = seeds[1];
-        const v = seeds[2];
+        const u = seeds[0];
+        const v = seeds[1];
 
         const w = radius * Math.sqrt(u);
         const t = 2 * Math.PI * v;
@@ -44,7 +49,6 @@ const generateRandomLilypad = (existingLilypads: LilypadData[], radius: number, 
 
         const lilyPad: LilypadData = {
             id: getLilypadId(),
-            seed,
             radius: 0.2,
             position: [x, y]
         }
@@ -82,7 +86,7 @@ export const generateLilypadClump = (seed: string = '', position: V2): LilypadCl
     const radius = Math.round(numLerp(2.5, 5, weight))
 
     for (let i = 0; i < count; i++) {
-        const lilypad = generateRandomLilypad(lilypads, radius, [random(), random(), random()])
+        const lilypad = generateRandomLilypad(lilypads, radius, [random(), random()])
         if (lilypad) {
             lilypads.push(lilypad)
         }
