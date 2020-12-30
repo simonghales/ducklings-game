@@ -17,6 +17,8 @@ import InteractivePlane from "../../../../game/player/main/components/Interactiv
 import Random from "../../../../3d/Random/Random";
 import {useGameTweaks} from "../../../../game/tweaks";
 import Land from "../../../../3d/Land/Land";
+import {useTweaks} from "use-tweaks";
+import Scene from "../../../../game/scene/main/components/Scene/Scene";
 
 const GameCanvas: React.FC = () => {
     useGameTweaks()
@@ -25,16 +27,7 @@ const GameCanvas: React.FC = () => {
             <Messages>
                 <StateManager>
                     <Physics>
-                        <Lights/>
-                        <Camera/>
-                        <Player/>
-                        {/*<FollowTargets/>*/}
-                        <Land/>
-                        <Water/>
-                        <Plants/>
-                        <FoodManager/>
-                        <Ducklings/>
-                        {/*<Random/>*/}
+                        <Scene/>
                     </Physics>
                 </StateManager>
             </Messages>

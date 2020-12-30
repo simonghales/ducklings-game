@@ -1,8 +1,10 @@
-import React, {Suspense, useEffect} from "react"
+import React, {Suspense, useEffect, useRef} from "react"
 import {useGLTF} from "@react-three/drei";
-import {MeshBasicMaterial, MeshStandardMaterial, Object3D} from "three";
+import {Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D} from "three";
 import {radians} from "../../utils/angles";
 import {useTweaks} from "use-tweaks";
+import {GLTF} from "three/examples/jsm/loaders/GLTFLoader";
+import * as THREE from "three";
 
 const url = "/assets/models/island.glb"
 
@@ -12,22 +14,32 @@ const Land: React.FC = () => {
 
     useEffect(() => {
         const tempGltf: any = gltf as any
-        // Object.keys(tempGltf.materials).forEach((materialKey: string) => {
-        //     tempGltf.materials[materialKey] = new MeshBasicMaterial({
-        //         color: 'blue',
-        //     })
-        // })
         Object.values(tempGltf.nodes).forEach((node: any) => {
             node.receiveShadow = true
             node.castShadow = true
             if (node.material) {
                 node.material = new MeshStandardMaterial({
-                    color: '#1d1922',
+                    color: '#171411',
                 })
             }
         })
-        // console.log('gltf', gltf)
     }, [gltf])
+
+    // // @ts-ignore
+    // const {color} = useTweaks({
+    //     color: '#1d1922',
+    // })
+    //
+    // useEffect(() => {
+    //     const tempGltf: any = gltf as any
+    //     Object.values(tempGltf.nodes).forEach((node: any) => {
+    //         if (node.material) {
+    //             node.material = new MeshStandardMaterial({
+    //                 color: color,
+    //             })
+    //         }
+    //     })
+    // }, [color, gltf])
 
     // @ts-ignore
     // const {x, y, scale} = useTweaks({
@@ -46,6 +58,8 @@ const Land: React.FC = () => {
         </group>
     )
 }
+
+useGLTF.preload(url)
 
 const Wrapper: React.FC = () => {
     return (
