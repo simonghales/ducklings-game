@@ -21,7 +21,7 @@ const Scene: React.FC = () => {
             <Plants/>
             <FoodManager/>
             <Ducklings/>
-            <Shapes/>
+            {/*<Shapes/>*/}
         </>
     )
 }

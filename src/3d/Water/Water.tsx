@@ -95,7 +95,7 @@ const Water: React.FC = () => {
 
     return (
         <>
-            <Plane args={[size, size]} position={[0, 0, -2.25]}>
+            <Plane args={[size, size]} position={[0, 0, -2.5]}>
                 {/*<meshPhongMaterial color={`#223f56`} />*/}
                 <CustomMaterial/>
             </Plane>
